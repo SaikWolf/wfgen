@@ -150,7 +150,7 @@ int main (int argc, char **argv)
         case 'h':
             printf("Usage of %s [options]\n",argv[0]);
             printf("  [ -f <uhd_tx_freq:%.3f MHz> ] [ -r <uhd_tx_rate:%.3f MHz> ] [ -g <uhd_tx_gain:%.3f dB> ]\n", uhd_tx_freq*1.0e-06, uhd_tx_rate*1.0e-06, uhd_tx_gain);
-            printf("  [ -a <uhd_tx_args:%s> ] [ -m <modulation:%s> ] [ -b <bw_nr:%.3f NHz> ]\n", uhd_tx_args.c_str(), modulation.c_str(), bw_nr);
+            printf("  [ -a <uhd_tx_args:%s> ] [ -M <modulation:%s> ] [ -b <bw_nr:%.3f NHz> ]\n", uhd_tx_args.c_str(), modulation.c_str(), bw_nr);
             printf("  [ -B <bw_f:%.3f MHz> ] [ -d <duration:%.3f s> ] [ -p <period:%.3f s> ]\n", bw_f*1.0e-06, duration, period);
             printf("  [ -J <digital_hop:%u> ] [ -K <analog_hop:%u> ] [ -x <mod_index:%.3f> ]\n", digital_hop, analog_hop, mod_index);
             printf("  [ -R <symbol_rate:%.3f kHz> ] [ -H <num_bursts:%u> ] [ -w <dwell:%.3f s> ]\n", symbol_rate*1.0e-03, num_bursts, dwell);
