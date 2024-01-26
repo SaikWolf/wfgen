@@ -291,14 +291,9 @@ int main (int argc, char **argv)
         frequency,
         rate*bandwidth);
     reporter->activity_type = "unknown"; // FIXME:::: Come back and fix this
-    // reporter->modulation=iarpa_proto_to_modulation(ms);
-    // reporter->set_modulation(iarpa_mod_to_scoring(ms));
     reporter->modulation = "unknown";
-    // reporter->protocol=iarpa_proto_to_name(ms);
     reporter->protocol = "unknown";
-    // reporter->modality=iarpa_proto_to_modality(ms);
-    reporter->modality = "frequency_agile";
-    // reporter->activity_type=iarpa_proto_to_activity(ms);
+    reporter->modality = "multi_carrier";
     reporter->activity_type = "lowprob_anomaly";
     reporter->device_origin = args;
     reporter->finalize();

@@ -13,7 +13,7 @@ import multiprocessing as mp
 import glob
 import json
 
-DGRL_SERVER_API_VERSION = 0x01000000
+WG_SERVER_API_VERSION = 0x01000000
 sp_failback = -1
 
 
@@ -23,9 +23,9 @@ try:
     from .c_logger import logger_client,fake_log,logger as c_logger
 except ImportError:
     ### fall back for direct execution
-    from data_gen_remote_listener.launcher import launch
-    from data_gen_remote_listener.utils import get_interface,encoder,decoder,Ettus_USRP_container
-    from data_gen_remote_listener import logger_client,fake_log,c_logger
+    from wavgen_cli.launcher import launch
+    from wavgen_cli.utils import get_interface,encoder,decoder,Ettus_USRP_container
+    from wavgen_cli import logger_client,fake_log,c_logger
 
 
 

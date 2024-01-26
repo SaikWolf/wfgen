@@ -7,7 +7,7 @@ from .c_logger import logger_client,fake_log,logger as c_logger
 
 BaseAudio = None
 import os
-if 'dgrl_preload_audio' in os.environ and os.environ["dgrl_preload_audio"]:
+if 'wg_preload_audio' in os.environ and os.environ["wg_preload_audio"]:
     if BaseAudio is None:
         print("Preloading audio into BaseAudio")
         BaseAudio = profiles.analogs.AudioCombiner(profiles.analogs.get_audio_files())

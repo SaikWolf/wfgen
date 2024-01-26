@@ -675,20 +675,15 @@ int main (int argc, char **argv)
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
         reporter->cache_to_misc(meta+"\"\n");
-        // reporter->modulation=iarpa_proto_to_modulation(ms);
-        // reporter->set_modulation(iarpa_mod_to_scoring(ms));
         reporter->set_modulation( modulation );
         reporter->modulation_src = modulation;
-        // reporter->protocol=iarpa_proto_to_name(ms);
         reporter->protocol = "unknown";
-        // reporter->modality=iarpa_proto_to_modality(ms);
         if(num_channels == 1){
             reporter->modality = "single_carrier";
         }
         else{
             reporter->modality = "frequency_agile";
         }
-        // reporter->activity_type=iarpa_proto_to_activity(ms);
         reporter->activity_type = "lowprob_anomaly";
         reporter->device_origin=uhd_tx_args;
         reporter->finalize();

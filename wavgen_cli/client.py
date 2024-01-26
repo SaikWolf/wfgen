@@ -13,7 +13,7 @@ import os
 import numpy as np
 import pprint
 
-DGRL_CLIENT_API_VERSION = 0x01000000
+WG_CLIENT_API_VERSION = 0x01000000
 
 try:
     from .utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
@@ -21,9 +21,9 @@ try:
     from . import profiles
 except:
     ## fall back for direct exection
-    from data_gen_remote_listener.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
-    from data_gen_remote_listener import logger_client,fake_log,c_logger
-    from data_gen_remote_listener import profiles
+    from wavgen_cli.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
+    from wavgen_cli import logger_client,fake_log,c_logger
+    from wavgen_cli import profiles
 
 
 def line2start_radio(line):
@@ -379,7 +379,7 @@ class Client(object):
             return self._not_connected
         if self.radios is None:
             return "Get radios first!"
-        from data_gen_remote_listener.run_modes import scripted
+        from wavgen_cli.run_modes import scripted
         if file_location is None:
             raise ValueError("No script path provided")
         try:

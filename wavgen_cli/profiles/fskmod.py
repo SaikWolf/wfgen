@@ -14,7 +14,7 @@ available_mods = ["fsk2", "fsk4", "fsk8", "fsk16", "fsk32", "fsk64",
 
 class _fskmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         super(_fskmod,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'usrp_fskmod'
         self.mod = mod if mod is not None else 'fsk4'
@@ -46,7 +46,7 @@ class _fskmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
@@ -148,7 +148,7 @@ class _fskmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static','fsk')
         return profiles.get_base_options('hopper','fsk')

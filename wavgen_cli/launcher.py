@@ -8,9 +8,9 @@ import yaml
 import time
 import pprint
 from typing import List
-from data_gen_remote_listener import profiles
-from data_gen_remote_listener.utils import paramify
-from data_gen_remote_listener.run_modes import parse_random_run_reqest,parse_script_request
+from wavgen_cli import profiles
+from wavgen_cli.utils import paramify
+from wavgen_cli.run_modes import parse_random_run_reqest,parse_script_request
 
 
 log_c = None
@@ -24,7 +24,7 @@ def launch(cmd: List[str],server_state:"ServerState",use_log=False):
     """
     global log_c, r_logger
     if log_c is None:
-        from data_gen_remote_listener import logger_client,fake_log,c_logger
+        from wavgen_cli import logger_client,fake_log,c_logger
         log_c = logger_client() if use_log else fake_log(cout=False)
         r_logger = c_logger
     if cmd == 'get_radios':

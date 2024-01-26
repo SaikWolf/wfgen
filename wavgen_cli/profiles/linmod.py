@@ -15,7 +15,7 @@ available_mods = ['psk2', 'psk4', 'psk8', 'psk16', 'psk32', 'psk64', 'psk128', '
 
 class _linmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         super(_linmod,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'usrp_linmod'
         self.mod = mod if mod is not None else 'qpsk'
@@ -45,7 +45,7 @@ class _linmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
@@ -134,7 +134,7 @@ class _linmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')

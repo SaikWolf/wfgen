@@ -22,10 +22,10 @@ from tqdm import tqdm
 
 def get_audio_files(source_dir=None):
     import os,glob
-    if 'DGRL_AUDIO_FOLDER' in os.environ and source_dir is None:
-        source_dir = os.environ['DGRL_AUDIO_FOLDER']
+    if 'WAVGEN_AUDIO_FOLDER' in os.environ and source_dir is None:
+        source_dir = os.environ['WAVGEN_AUDIO_FOLDER']
     elif source_dir is None:
-        raise ValueError("Environment parameter 'DGRL_AUDIO_FOLDER' not set, specify 'source_dir'")
+        raise ValueError("Environment parameter 'WAVGEN_AUDIO_FOLDER' not set, specify 'source_dir'")
     combined_files = glob.glob(os.path.join(source_dir,'combined_audio*.wav'))
     if len(combined_files) == 0:
         combined_files = glob.glob(os.path.join(source_dir,'*.wav'))
@@ -137,10 +137,10 @@ class analogs_path_types:
 class AudioClient(object):
     def __init__(self,endpoint=None,offset=None,silent=False):
         if endpoint is None:
-            if 'DGRL_AUDIO_SERVER' not in os.environ:
-                print("Endpoint must be manually set, 'DGRL_AUDIO_SERVER' not found in environ")
+            if 'WG_AUDIO_SERVER' not in os.environ:
+                print("Endpoint must be manually set, 'WG_AUDIO_SERVER' not found in environ")
             else:
-                endpoint = os.environ['DGRL_AUDIO_SERVER']
+                endpoint = os.environ['WG_AUDIO_SERVER']
         self.endpoint = endpoint
 
         self.ctx = None
@@ -316,8 +316,8 @@ class AudioCombiner(object):
         if not use_base:
             self._find_sources()
         else:
-            import data_gen_remote_listener as dgrl
-            Base = dgrl.BaseAudio
+            import wavgen_cli as wg
+            Base = wg.BaseAudio
             if Base is None:
                 self._find_sources()
             else:
@@ -482,7 +482,7 @@ class AudioCombiner(object):
             if idx < len(self.source_files)-1 and interleave_silence_ms > 0:
                 self.src_fusion += AudioSegment.silent(duration=interleave_silence_ms)#ms
 
-    def export_fused(self,filepath=os.path.join(os.environ["DGRL_AUDIO_FOLDER"] if "DGRL_AUDIO_FOLDER" in os.environ else ".","combined_audio.wav"),format='wav'):
+    def export_fused(self,filepath=os.path.join(os.environ["WAVGEN_AUDIO_FOLDER"] if "WAVGEN_AUDIO_FOLDER" in os.environ else ".","combined_audio.wav"),format='wav'):
         if self.src_fusion is None:
             raise RuntimeError("No source to export")
         byte_depth = self.src_fusion.sample_width
@@ -588,7 +588,7 @@ if have_pygr():
             self._mode = 0
             if self.source.endpoint is None or len(self.source)==0:
                 if source_file is None and source_folder is None:
-                    if "DGRL_AUDIO_FOLDER" not in os.environ:
+                    if "WAVGEN_AUDIO_FOLDER" not in os.environ:
                         raise ValueError("No source specified")
                     self.source = AudioCombiner(get_audio_files())
                 else:

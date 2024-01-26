@@ -7,7 +7,7 @@ available_mods = ['tone','multitone','emanation_exponential']
 
 class tone(_profile):
     def __init__(self,mod=None,**kwargs):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         super(tone,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'usrp_tone'
         self.mod = 'tone'
@@ -36,7 +36,7 @@ class tone(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
@@ -116,7 +116,7 @@ class tone(_profile):
 
 class multitone(_profile):
     def __init__(self,mod=None,**kwargs):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         super(multitone,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'usrp_multitone'
         self.mod = 'multitone'
@@ -149,7 +149,7 @@ class multitone(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         if self.mod is None:
             mod = self.defaults['modulation']
         else:
@@ -214,7 +214,7 @@ class multitone(_profile):
 
 class emanation_exponential(_profile):
     def __init__(self,mod=None,**kwargs):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         super(emanation_exponential,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'usrp_multitone'
         self.mod = 'emanation_exponential'
@@ -246,7 +246,7 @@ class emanation_exponential(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from data_gen_remote_listener import profiles
+        from wavgen_cli import profiles
         if self.mod is None:
             mod = self.defaults['modulation']
         else:
