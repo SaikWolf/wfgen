@@ -67,7 +67,7 @@ check:
   tags: [cpu,docker]
   stage: test_c
   script:
-    - make -j4
+    - PYBOMBS_PREFIX=/usr make -j4
 
 run:
   tags: [cpu,docker]
