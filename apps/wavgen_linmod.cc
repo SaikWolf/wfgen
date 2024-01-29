@@ -89,6 +89,14 @@ int main (int argc, char **argv)
     }
 
 
+    if(bw_nr > 0.0){
+        bw_f = bw_nr * uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_nr specified directly as: " << bw_nr << " for a bw_f: " << bw_f << "Hz at rate: " << uhd_tx_rate << "Hz\n";
+    }
+    else if(bw_f > 0.0){
+        bw_nr = bw_f / uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
+    }
 
 
     printf("Using:\n");
@@ -171,6 +179,8 @@ int main (int argc, char **argv)
     labels* reporter;
     if(!json.empty()){
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG1","TXDL S1");
+        reporter->set_modulation(modulation);
+        reporter->eng_bw = bw_f;
     }
     double initial_start = chrono_time[2]+0.5;
     md.time_spec = uhd::time_spec_t(chrono_time[2]+0.5);
@@ -264,13 +274,15 @@ int main (int argc, char **argv)
         memset(misc_buf, 0, 100);
         snprintf(misc_buf, 100,"        \"stop_app\": %.9f,\n",chrono_time[4]);
         reporter->cache_to_misc(std::string(misc_buf));
-        reporter->start_reports();
-
-        std::string meta = std::string(argv[0]);
+        
+        std::string meta = "        \"command\": \"" + std::string(argv[0]);
         for(int arg_idx = 1; arg_idx < argc; arg_idx++){
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
+        reporter->cache_to_misc(meta+"\"\n");
 
+        meta = "";
+        reporter->start_reports();
         reporter->append(
             chrono_time[2]+0.5,
             double(xfer_counter)/uhd_tx_rate,

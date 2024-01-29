@@ -979,6 +979,8 @@ def scripted_worker(worker_id, uhd_args, profiles, seed, worker_lookup):
             iteration_number += 1
         
         if profile_config is not None:
+            if 'mode' not in profile_config:
+                profile_config['mode'] = 'static'
             is_hopper = profile_config['mode'] == 'hopper'
 
             if time_boundary is not None:
@@ -1000,6 +1002,11 @@ def scripted_worker(worker_id, uhd_args, profiles, seed, worker_lookup):
             replay = profile_name in get_replay_profile_names()
             if replay:
                 profile_config['mode'] = 'replay'
+            elif 'instance_name' in profile_config:
+                profile_config['mode'] = 'replay'
+                # if 'bw' in profile_config and profile_config['bw'] < 1.0:
+                #     profile_config['rate'] = profile_config['energy_bw']/profile_config['bw']
+                #     profile_config['bw'] = profile_config['energy_bw']
 
             json_truth = json_template.format(serial=dev_serial,instance=instance)
             profile_config['json'] = json_truth
@@ -1213,11 +1220,14 @@ def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
             'profile':'profile'
         }
         if 'rate' not in config_w:
-            def_rate = 40e6
+            if 'energy_bw' in config_w:
+                def_rate = config_w['energy_bw']/config_w['bw']
+            else:
+                def_rate = 40e6
     elif 'mode' in config_w and config_w['mode'] == 'replay':
         mode = "REPLAY"
         key_mapper = {
-            ('center_freq','freq_hi','freq_lo','sample_rate'):('frequency','span','rate','bw'),
+            ('center_freq','reference_freq','freq_hi','freq_lo','sample_rate'):('frequency','span','rate','bw'),
             ('power',):('gain',),
             ('energy_set',):('hopper','bursty','num_bursts','num_loops'),
             ('time_start','time_stop'):('duration','time_start','time_stop'),
@@ -1228,7 +1238,10 @@ def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
         if log_c:
             log_c.log(c_logger.level_t.DEBUG,"Incoming keys: {0!s}".format(list(config_w.keys())))
         if 'sample_rate' not in config_w:
-            def_rate = 1e6
+            if 'energy_bw' in config_w:
+                def_rate = config_w['energy_bw']/config_w['bw']
+            else:
+                def_rate = 1e6
         else:
             def_rate = config_w['sample_rate']
     else:
@@ -1294,7 +1307,14 @@ def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
         if is_tuple:
             if mode == "REPLAY" and isinstance(key_mapper[key_set],tuple):
                 if 'center_freq' in key_set:
-                    config_b['frequency'] = config_w['center_freq']*1e6
+                    if 'center_freq' in config_w:
+                        config_b['frequency'] = config_w['center_freq']*1e6
+                    elif "reference_freq" in config_w:
+                        config_b['frequency'] = config_w['reference_freq']*1e6
+                    else:
+                        config_b['frequency'] = 2.45e9
+                    if 'sample_rate' not in config_w:
+                        config_w['sample_rate'] = def_rate
                     config_b['rate'] = config_w['sample_rate']
                     if config_w['modality'] == 'frequency_agile':
                         config_b['span'] = int((config_w['freq_hi']-config_w['freq_lo'])*1e6)/config_b['rate']
@@ -1437,6 +1457,16 @@ def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
             elif key_set[0] == "duration":
                 pass
             elif key_set[0] == 'dwell':
+                pass
+            elif key_set[0] == 'center_freq':
+                pass
+            elif key_set[0] == "power":
+                pass
+            elif key_set[0] == "energy_set":
+                pass
+            elif key_set[0] == "time_start":
+                pass
+            elif key_set[0] == "avg_period":
                 pass
             else:
                 raise RuntimeError("Someone forgot to update the key_mapper here(2)")
@@ -1615,10 +1645,12 @@ def quick_viz(signals,keys,unit,sources=None,off_mark='_',on_mark='|',joiner='/'
     return '\n'.join(lines)
 
 def needed_radios_for_script(filepath):
-    viz = visualize_script(filepath,'0','1',bins=-1)
+    viz = visualize_script(filepath,'_','|',bins=-1)
+    if len(viz.split('\n')) == 1:
+        return 1
     quant = np.vstack([np.frombuffer(x[40:].encode('latin-1'),np.uint8) for x in viz.split('\n')])
-    quant[quant==ord('0')] = 0
-    quant[quant==ord('1')] = 1
+    quant[quant==ord('_')] = 0
+    quant[quant==ord('|')] = 1
     try:
         nr = np.max(np.sum(quant,axis=0))
     except:

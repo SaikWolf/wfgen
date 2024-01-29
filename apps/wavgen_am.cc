@@ -96,6 +96,15 @@ int main (int argc, char **argv)
     else if(period > 0) src_fq = 1/period;
     else period = 1/src_fq;
 
+    if(bw_nr > 0.0){
+        bw_f = bw_nr * uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_nr specified directly as: " << bw_nr << " for a bw_f: " << bw_f << "Hz at rate: " << uhd_tx_rate << "Hz\n";
+    }
+    else if(bw_f > 0.0){
+        bw_nr = bw_f / uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
+    }
+
     a_src_t real_anlg = str2analog_source_type(modulation.c_str());
     d_src_t real_digi = str2digital_source_type(modulation.c_str());
     m_src_t real_mesg = str2message_source_type(modulation.c_str());
@@ -252,6 +261,10 @@ int main (int argc, char **argv)
     else if(modulation == digital_source_type2str(PDM)){
         exit(1);
     }
+    if(!json.empty()){
+        reporter->set_modulation("am_"+modulation);
+        reporter->eng_bw = bw_f;
+    }
 
     real_path rp = real_path_create(uhd_tx_rate,uhd_tx_rate,0.001*uhd_tx_rate,
                                     .1*uhd_tx_rate,0,1.0,0.0,wrap_source);
@@ -374,13 +387,15 @@ int main (int argc, char **argv)
         memset(misc_buf, 0, 100);
         snprintf(misc_buf, 100,"        \"stop_app\": %.9f,\n",chrono_time[4]);
         reporter->cache_to_misc(std::string(misc_buf));
-        reporter->start_reports();
-
-        std::string meta = std::string(argv[0]);
+        
+        std::string meta = "        \"command\": \"" + std::string(argv[0]);
         for(int arg_idx = 1; arg_idx < argc; arg_idx++){
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
+        reporter->cache_to_misc(meta+"\"\n");
 
+        meta = "";
+        reporter->start_reports();
         reporter->append(
             chrono_time[2]+0.5,
             double(0)/uhd_tx_rate,

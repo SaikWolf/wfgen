@@ -191,8 +191,6 @@ class Client(object):
             self.addrs = [get_interface()]
         else:
             self.addrs = [x for x in addrs]
-        # if isinstance(self.addr,list):
-        #     self.addr = self.addr[0] ### FIXME adapt to where multiple servers are alive
         self.ports = ports
         self.conn = MultiSocket()
         self.sshs = ssh_tunnel
@@ -254,7 +252,7 @@ class Client(object):
         # reply = decoder(self.conn.recv_multipart())
         expected = self.conn.send_multipart(["help","me"])
         reply = self.conn.recv_multipart(expected)
-        return "\n\t".join(reply[0]) ## FIXME: adjust for multiple servers
+        return "\n\t".join(reply[0])
 
     def get_radios(self):
         if not self.is_connected():
@@ -390,6 +388,8 @@ class Client(object):
                 num_radios_needed = -1
             if flags in [1,2]:
                 og_profs = profiles.get_traceback_profiles(file_location)
+            else:
+                og_profs = {}
         except:
             import traceback
             traceback.print_exc()
@@ -426,10 +426,14 @@ class Client(object):
                 src = src_id[idx]
                 time_win = time_windows[idx]
                 if sig['instance_name'] not in og_profs:
-                    self.log_c.log(c_logger.level_t.WARNING,"Dropping signal at index {} because can't find a replay profile for it".format(idx))
-                    signal_lineup[idx] = [None,None,None]
-                    continue
-                prof_name = og_profs[sig['instance_name']]
+                    if flags not in [3]:
+                        self.log_c.log(c_logger.level_t.WARNING,"Dropping signal at index {} because can't find a replay profile for it".format(idx))
+                        signal_lineup[idx] = [None,None,None]
+                        continue
+                if flags in [1,2]:
+                    prof_name = og_profs[sig['instance_name']]
+                else:
+                    prof_name = sig['mod_src_name']
                 radio_idx = None
                 if src in radio_mapping:
                     ### great I know what radio this should go to
@@ -551,7 +555,7 @@ class Client(object):
         command = ['run_script',yaml.dump(radio_structure)]
         self.conn.send_multipart(command)
         reply = self.conn.recv_multipart()
-        return '\n'.join([' '.join(x) for x in reply]) ## FIXME: adjust for multiple servers
+        return '\n'.join([' '.join(x) for x in reply])
 
     @staticmethod
     def get_run_random_fields():
@@ -571,7 +575,7 @@ class Client(object):
         command = ['run_random',yaml.dump(rr_config)]
         self.conn.send_multipart(command)
         reply = self.conn.recv_multipart()
-        return ' '.join(reply[0]) ## FIXME: adjust for multiple servers
+        return '\n'.join([' '.join(x) for x in reply])
 
 
 
@@ -631,7 +635,7 @@ class cli(cmd.Cmd,object):
             "** - get_finished\n",
             "**     -- List of tuples -- each tuple is an finished process on the server\n",
             "** - get_truth local_filename.json\n",
-            "**     -- Saves all sent signals since start/last call into local_filename.json (overwrites)\n",
+            "**     -- Saves all sent signals since start/last call into local_filename.json\n",
             "** - start_radio <device number> <profile type> <profile name> [options]\n",
             "**     start_radio 0 profile qpsk frequency 2.45e6\n",
             "**     -- This starts device 0 (with need args) at the specified frequency\n",

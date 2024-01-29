@@ -77,6 +77,10 @@ this step.
 
 The apps are then created in `build/apps` and if installed will go to `VIRTUAL_ENV/bin`
 
+```bash
+make -j4 install
+```
+
 There are logging programs `logger_server` and `logger_file` that are meant for debugging
 and are not documented, use at your discretion.
 
@@ -190,6 +194,9 @@ python3 wavgen_cli/client.py --conn 127.0.0.1 50000 False --verbose
 ```
 
 The `--conn` flag can be used multiple times to connect to multiple servers at the same time.
+The final component of the `--conn` flag is whether ssh should be used to connect instead of
+direct port connection, and is intended for connecting to systems whose ports aren't necessarily
+open due to security concerns, yet can still be connected to through ssh.
 The first command will always need to be `get_radios` in order for any other functionality
 
 ```python
@@ -280,8 +287,41 @@ Radio should be stopped at: cpu sec: 1706535032.159663200
 .json log written to /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
 ```
 
+The truth file containing information on everything that was transmitted can then be pulled to the client
+with the command
+
+```python
+(Cmd) get_truth demo_run.json
+'/tmp/tmpvfx_ct91/truth_report_000.json']
+Tracking new source: type=b200,serial=30875A1
+results written to demo_run.json
+truth file: demo_run.json
+```
+
+-- Note: If the json is not proper, the report will not contain the improper json, but the information
+on the server for the specified signal
+(ex: /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json)
+will still contain useful information, but will require human intervention to correct.
 
 
+The previous runs can then be rerun from the script in a stochastic approximation of the original.
+
+```python
+(Cmd) run_script demo_run.json
+['/tmp/tmpc1jrvnd8/truth_report_000.json']
+Tracking new source: type=b200,serial=30875A1
+results written to demo_rerun.json
+truth file: demo_rerun.json
+```
 
 
+## Known Bugs
+
+- Using the up and down keys in the command line is possible, but going up and then down can result in the
+CLI's pointer to get offset and make it harder to see exactly what is going on.
+
+- When the command wraps around the edge of the window the command itself can dissapear. This is usually
+fixed by hitting tab to refresh the line.
+
+- Precision roundoff in re-running scripts
 

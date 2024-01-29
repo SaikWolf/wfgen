@@ -531,6 +531,7 @@ def run(addr:str=None,port:int=50000,uhd_args=[],debug=False,root_dir='/data/loc
                     try:
                         request = yaml.safe_load(" ".join(message[1:]))
                         response = None
+                        log_c.log(c_logger.level_t.INFO,"run_script running from:"+" ".join(message[1:]))
                     except:
                         response = "Couldn't handle that just yet".split()
                         log_c.log(c_logger.level_t.INFO,' '.join(response))
@@ -547,6 +548,9 @@ def run(addr:str=None,port:int=50000,uhd_args=[],debug=False,root_dir='/data/loc
                             response = "Got your request, no valid radios here."
                             if not no_reply:
                                 server.send_multipart(encoder(response.split()))
+                            print([y['args'] for y in Current_STATE.radios.radios])
+                            print([x for x in request.keys()])
+                            print([x for x in request.keys() if x in [y['args'] for y in Current_STATE.radios.radios] and x != 'runtime'])
                         else:
                             radios = [x for x in Current_STATE.idle_radios if x in 
                                       [y['args'] for y in Current_STATE.radios.radios]]

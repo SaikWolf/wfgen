@@ -166,6 +166,8 @@ int main (int argc, char **argv)
     labels* reporter;
     if(!json.empty()){
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG1","TXDL S1");
+        reporter->set_modulation("no_answer");
+        reporter->eng_bw = max_delta-min_delta+5e3;
     }
     // unsigned long long ticker = 0;
     float local_gain = 1.0f/float(num_tones);
@@ -258,13 +260,15 @@ int main (int argc, char **argv)
         memset(misc_buf, 0, 100);
         snprintf(misc_buf, 100,"        \"stop_app\": %.9f,\n",chrono_time[4]);
         reporter->cache_to_misc(std::string(misc_buf));
-        reporter->start_reports();
-
-        std::string meta = std::string(argv[0]);
+        
+        std::string meta = "        \"command\": \"" + std::string(argv[0]);
         for(int arg_idx = 1; arg_idx < argc; arg_idx++){
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
+        reporter->cache_to_misc(meta+"\"\n");
 
+        meta = "";
+        reporter->start_reports();
         for(unsigned int idx = 0; idx < num_tones; idx++){
             float fc = tone_delta[idx];
             reporter->append(

@@ -57,7 +57,6 @@ class labels
     double       stop;      ///< stop time
     double       freq_lo;   ///< lower edge of frequency band
     double       freq_hi;   ///< lower edge of frequency band
-    double       eng_bw;    ///< bw of energy burst should be constant
 
     /// file handle
     FILE * fid;
@@ -78,6 +77,7 @@ class labels
     std::string modulation_family;
     std::string modulation_src;
     std::string device_origin;
+    double      eng_bw;    ///< bw of energy burst should be constant
 };
 
 /******************************************************************************************/

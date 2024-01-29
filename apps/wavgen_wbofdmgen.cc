@@ -179,6 +179,7 @@ int main (int argc, char **argv)
     if (!json.empty())
     {
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG0000001","TXDL S0000001");
+        reporter->modulation = "ofdm";
         reporter->start_reports();
     }
     chrono_time[6] = chrono_time[2] + 0.5;
@@ -276,13 +277,12 @@ int main (int argc, char **argv)
         memset(misc_buf, 0, 100);
         snprintf(misc_buf, 100, "        \"stop_app\": %.9f,\n", chrono_time[4]);
         reporter->cache_to_misc(std::string(misc_buf));
-
+        
         std::string meta = "        \"command\": \"" + std::string(argv[0]);
-        for (int arg_idx = 1; arg_idx < argc; arg_idx++)
-        {
+        for(int arg_idx = 1; arg_idx < argc; arg_idx++){
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
-        reporter->cache_to_misc(meta + "\"\n");
+        reporter->cache_to_misc(meta+"\"\n");
     }
 
     reporter->append(
@@ -291,7 +291,7 @@ int main (int argc, char **argv)
         frequency,
         rate*bandwidth);
     reporter->activity_type = "unknown"; // FIXME:::: Come back and fix this
-    reporter->modulation = "unknown";
+    reporter->modulation = "ofdm";
     reporter->protocol = "unknown";
     reporter->modality = "multi_carrier";
     reporter->activity_type = "lowprob_anomaly";

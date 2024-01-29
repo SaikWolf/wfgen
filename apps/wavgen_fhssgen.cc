@@ -214,9 +214,13 @@ int main (int argc, char **argv)
     else if(period > 0) src_fq = 1/period;
     else period = 1/src_fq;
 
-    if(bw_f > 0.0){
-        bw_f = bw_f * uhd_tx_rate; // specified relative, overwriting other
-        std::cout << "bw_f specified directly as: " << bw_f << " for a bw_f: " << bw_f << "Hz at rate: " << uhd_tx_rate << "Hz\n";
+    if(bw_nr > 0.0){
+        bw_f = bw_nr * uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_nr specified directly as: " << bw_nr << " for a bw_f: " << bw_f << "Hz at rate: " << uhd_tx_rate << "Hz\n";
+    }
+    else if(bw_f > 0.0){
+        bw_nr = bw_f / uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
     }
 
     if(dwell > 0 && squelch > 0 && hop_time > 0){
@@ -551,6 +555,8 @@ int main (int argc, char **argv)
     labels* reporter = nullptr;
     if(!json.empty()){
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG1","TXDL S1");
+        reporter->set_modulation( modulation );
+        reporter->eng_bw = bw_f;
         reporter->start_reports();
     }
     chrono_time[6] = chrono_time[2]-loop_time+0.5;                // 'prev' TX time
