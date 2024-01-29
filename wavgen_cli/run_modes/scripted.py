@@ -689,8 +689,6 @@ def parse_script_request(request:Dict,server_state:"ServerState",use_log=False):
         server_state.burst_instance+signal_limit,
         toggles,
         os.path.join(server_state.save_dir,server_state.json_proto),
-        server_state.octo_addr,
-        server_state.octo_port,
         use_log
     ))
     proc.start()
@@ -700,7 +698,7 @@ def parse_script_request(request:Dict,server_state:"ServerState",use_log=False):
 
 def scripted_run(runtime, available_radio_profiles, flags, initial_idx, final_idx,
                  toggles=dict(),
-                 truth_template='', octo_addr=None, octo_port=None,use_log=False):
+                 truth_template='', use_log=False):
     ''' Manage and maintain a scripted run, where each signal is its own process
 
     This should just keep creating work until runtime is over
@@ -713,8 +711,6 @@ def scripted_run(runtime, available_radio_profiles, flags, initial_idx, final_id
     worker_lookups['end_time'] = None  ## First worker to claim semaphore sets this
     worker_lookups['instance'] = initial_idx
     worker_lookups['instance_limit'] = final_idx
-    worker_lookups['octo_addr'] = octo_addr
-    worker_lookups['octo_port'] = octo_port
     worker_lookups['json_template'] = truth_template
     worker_lookups['flags'] = flags
     worker_lookups['toggles'] = toggles
@@ -1033,9 +1029,6 @@ def scripted_worker(worker_id, uhd_args, profiles, seed, worker_lookup):
                     profile_config['duration'] = runtime + system_start_time - sanity_time_check
 
             launch_env = os.environ.copy()
-            if(worker_lookup['octo_addr'] is not None):
-                launch_env["OCTOCLOCK_SERVER_ADDRESS"]=worker_lookup['octo_addr'] 
-                launch_env["OCTOCLOCK_SERVER_PORT"]=str(worker_lookup['octo_port'])
             # print(instance, worker_id,profile_config)
             launch_command = prof.start("-a {0:s}".format(uhd_args),profile_config)
             # print(instance, worker_id,launch_command)

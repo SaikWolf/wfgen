@@ -1,6 +1,6 @@
 
 
-from .utils import encoder,decoder,MultiSocket,have_pygr,have_freqhopper
+from .utils import encoder,decoder,MultiSocket,have_pygr
 from . import server,client,utils,profiles
 from .launcher import launch
 from .c_logger import logger_client,fake_log,logger as c_logger

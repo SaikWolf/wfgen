@@ -1236,8 +1236,8 @@ def parse_args():
     # p.add_argument("--disable-ssh",action="store_true",help="Don't use ssh tunnel to talk to server.")
     p.add_argument("--conn",default=[],action='append',nargs=3,metavar=('addr','port','use_ssh'),
         help=("Unique interface address to connect to. Default: host<internet connection IP> 50000 False"))
-    p.add_argument("--verbose",action="store_false",help="Should the cli spit out everything? (inverted)")
-    p.add_argument("--dev",action="store_false",help="Should the cli spit out dev messages? (inverted)")
+    p.add_argument("--verbose",action="store_true",help="Should the cli spit out everything?")
+    p.add_argument("--dev",action="store_true",help="Should the cli spit out dev messages?")
     p.add_argument("--log-server",action='store_true',help="Use if a log-server is active (meant for debugging)")
     args = p.parse_args()
     args.addrs,args.ports,args.sshs = zip(*args.conn)

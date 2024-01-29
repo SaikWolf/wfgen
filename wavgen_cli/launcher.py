@@ -34,7 +34,7 @@ def launch(cmd: List[str],server_state:"ServerState",use_log=False):
         return None
     log_c.log(r_logger.level_t.INFO,"\nLaunching with command:\n{0!s}".format(pprint.pformat(cmd,indent=2)))
     if cmd[0] == 'start_radio':
-        if cmd[1].startswith("usrp_"):
+        if cmd[1].startswith("wavgen_"):
             log_c.log(r_logger.level_t.INFO,"\nstarting a radio with command\n\t{}".format(cmd[1:]))
             if any(['quiet' in x for x in cmd]):
                 proc = subprocess.Popen(cmd[1:],stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False)
@@ -56,9 +56,6 @@ def launch(cmd: List[str],server_state:"ServerState",use_log=False):
                 log_c.log(r_logger.level_t.INFO,"\nUsing Parameters: {0!s}".format(params))
                 p = prof(use_log=use_log)
                 launch_env = os.environ.copy()
-                if server_state.octo_addr is not None:
-                    launch_env["OCTOCLOCK_SERVER_ADDRESS"]=server_state.octo_addr
-                    launch_env["OCTOCLOCK_SERVER_PORT"]=str(server_state.octo_port)
                 launch_command = p.start(cmd[2],params)
                 command = shlex.split(launch_command)
                 log_c.log(r_logger.level_t.DEBUG,"---launch command: {0!s}".format(command))
@@ -85,9 +82,6 @@ def launch(cmd: List[str],server_state:"ServerState",use_log=False):
                 print(params)
                 p = prof(use_log=use_log)
                 launch_env = os.environ.copy()
-                if server_state.octo_addr is not None:
-                    launch_env["OCTOCLOCK_SERVER_ADDRESS"]=server_state.octo_addr
-                    launch_env["OCTOCLOCK_SERVER_PORT"]=str(server_state.octo_port)
                 command = p.start(cmd[2],params).split()
                 log_c.log(r_logger.level_t.DEBUG,"---launch command: {0!s}".format(command))
                 if any(['quiet' in x for x in cmd]):

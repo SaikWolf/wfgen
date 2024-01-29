@@ -72,14 +72,12 @@ def shutdown():
 
 
 class ServerState(object):
-    def __init__(self, root_dir, server_addr, server_port, octo_addr, octo_port, uhd_args, log_template, debug, use_log=True):
+    def __init__(self, root_dir, server_addr, server_port, uhd_args, log_template, debug, use_log=True):
         self.radios         = None
         self.root           = root_dir
         self.save_dir       = None
         self.addr           = server_addr
         self.port           = server_port
-        self.octo_addr      = octo_addr
-        self.octo_port      = octo_port
         self.uhd_args       = uhd_args
         self.json_proto     = log_template
         self.burst_instance = 0
@@ -153,7 +151,7 @@ class ServerState(object):
 command_list=["help","ping","get_radios","get_active","get_finished",
               "start_radio","run_random","kill","shutdown","get_truth",
               "run_script"]
-def run(addr:str=None,port:int=50000,octo_server:str=None,octo_port:int=56000,uhd_args=[],debug=False,root_dir='/data/local/wavgen_reports',use_log=True):
+def run(addr:str=None,port:int=50000,uhd_args=[],debug=False,root_dir='/data/local/wavgen_reports',use_log=True):
     """
     Run the server application
 
@@ -175,7 +173,7 @@ def run(addr:str=None,port:int=50000,octo_server:str=None,octo_port:int=56000,uh
     finished_procs = []
 
     json_template = 'truth_dev_{serial:s}_instance_{instance:05d}.json'
-    Current_STATE = ServerState(root_dir,addr,port,octo_server,octo_port,uhd_args,json_template,debug,use_log=use_log)
+    Current_STATE = ServerState(root_dir,addr,port,uhd_args,json_template,debug,use_log=use_log)
 
     server_poller = zmq.Poller()
     server_poller.register(server, zmq.POLLIN)
@@ -597,15 +595,13 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--addr",default=None,type=str,help="Interface address to bind to. Defaults to internet connection.")
     p.add_argument("--port",default=50000,type=int,help="Port to bind to (def: %(default)s)")
-    p.add_argument("--octo-addr",default=None,type=str,help="IP address for the octo_server process (def: None)")
-    p.add_argument("--octo-port",default=56000,type=int, help="Port to connect on to the octo_server (def: %(default)s)")
     p.add_argument("--uhd-args",default=[],type=str,action='append',help="Limit to devices whose flag provided will find (def: all uhd devices)")
     p.add_argument("--log-server",action='store_true',help="Use if a log-server is active (meant for debugging)")
     return p.parse_args()
 
 def main():
     args = parse_args()
-    run(args.addr,args.port,args.octo_addr,args.octo_port,args.uhd_args,use_log=args.log_server)
+    run(args.addr,args.port,args.uhd_args,use_log=args.log_server)
 
 
 

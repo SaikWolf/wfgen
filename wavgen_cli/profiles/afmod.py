@@ -11,7 +11,7 @@ class _ammod(_profile):
     def __init__(self,mod=None,**kwargs):
         from wavgen_cli import profiles
         super(_ammod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'usrp_am'
+        self.base_command = 'wavgen_am'
         self.mod = mod if mod is not None else 'am_wav_file'
         self.options = profiles.get_base_options('static','analog') + ['json']
         self.option_flags = profiles.get_base_flags('static','analog') + ['-j']
@@ -45,7 +45,7 @@ class _ammod(_profile):
         hopping = False
         if "hopper" in params and params['hopper']:
             hopping = True
-            self.base_command = 'usrp_fhssgen'
+            self.base_command = 'wavgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -123,7 +123,7 @@ class _fmmod(_profile):
     def __init__(self,mod=None,**kwargs):
         from wavgen_cli import profiles
         super(_fmmod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'usrp_fm'
+        self.base_command = 'wavgen_fm'
         self.mod = mod if mod is not None else 'fm_wav_file'
         self.options = profiles.get_base_options('static','analog') + ['json']
         self.option_flags = profiles.get_base_flags('static','analog') + ['-j']
@@ -155,7 +155,7 @@ class _fmmod(_profile):
         hopping = False
         if "hopper" in params and params['hopper']:
             hopping = True
-            self.base_command = 'usrp_fhssgen'
+            self.base_command = 'wavgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05

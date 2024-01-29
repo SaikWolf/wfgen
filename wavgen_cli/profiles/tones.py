@@ -9,11 +9,11 @@ class tone(_profile):
     def __init__(self,mod=None,**kwargs):
         from wavgen_cli import profiles
         super(tone,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'usrp_tone'
+        self.base_command = 'wavgen_tone'
         self.mod = 'tone'
         self.options = profiles.get_base_options('static','tone') + ['json']
         self.option_flags = profiles.get_base_flags('static','tone') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'usrp_linmod'
+        self.defaults = { ## This are set to the defaults in 'wavgen_linmod'
             'bands':[(100e6,6e9)],
             # 'freq_limits':[(100e6,6e9)], ### controlled with band now
             'span_limits':[(5e6,100e6)],
@@ -43,7 +43,7 @@ class tone(_profile):
         if "hopper" in params and params['hopper']:
             ############# This is a frequency hopping version
             hopping = True
-            self.base_command = 'usrp_fhssgen'
+            self.base_command = 'wavgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -118,11 +118,11 @@ class multitone(_profile):
     def __init__(self,mod=None,**kwargs):
         from wavgen_cli import profiles
         super(multitone,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'usrp_multitone'
+        self.base_command = 'wavgen_multitone'
         self.mod = 'multitone'
         self.options = profiles.get_base_options('static','tones') + ['json']
         self.option_flags = profiles.get_base_flags('static','tones') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'usrp_linmod'
+        self.defaults = { ## This are set to the defaults in 'wavgen_linmod'
             'bands':[(100e6,6e9)],
             # 'freq_limits':[(100e6,6e9)], ### controlled with 'bands' now
             'span_limits':[(5e6,100e6)],
@@ -216,11 +216,11 @@ class emanation_exponential(_profile):
     def __init__(self,mod=None,**kwargs):
         from wavgen_cli import profiles
         super(emanation_exponential,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'usrp_multitone'
+        self.base_command = 'wavgen_multitone'
         self.mod = 'emanation_exponential'
         self.options = profiles.get_base_options('static','tones') + ['json']
         self.option_flags = profiles.get_base_flags('static','tones') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'usrp_linmod'
+        self.defaults = { ## This are set to the defaults in 'wavgen_linmod'
             'bands':[(100e6,6e9)],
             #'freq_limits':[(100e6,6e9)],
             'span_limits':[(5e6,100e6)],

@@ -324,9 +324,7 @@ def parse_random_run_reqest(request:Dict,server_state:"ServerState"):
                 radio_args,
                 request,
                 server_state.burst_instance,
-                os.path.join(server_state.save_dir,server_state.json_proto),
-                server_state.octo_addr,
-                server_state.octo_port))
+                os.path.join(server_state.save_dir,server_state.json_proto)))
     proc.start()
     server_state.increment_instance(request['instance_limit'])
 
@@ -335,7 +333,7 @@ def parse_random_run_reqest(request:Dict,server_state:"ServerState"):
 
 random_setup_keys = ['bands', 'runtime', 'seed', 'instance_limit', 'profiles', 'radios', 'profile_defaults']
 profile_defaults_keys = _source_limits + _signal_limits + _energy_limits
-def random_run(radios, run_setup, starting_instance=0, truth_template='', octo_addr=None, octo_port=None):
+def random_run(radios, run_setup, starting_instance=0, truth_template=''):
     ### Since still getting more useful executables up and running this is going to be more complex than
     ###  it really needs to be long term
 
@@ -355,8 +353,6 @@ def random_run(radios, run_setup, starting_instance=0, truth_template='', octo_a
     worker_lookups['start_time'] = None ## First worker to claim semaphore sets this
     worker_lookups['end_time'] = None  ## First worker to claim semaphore sets this
     worker_lookups['json_template'] = truth_template
-    worker_lookups['octo_addr'] = octo_addr
-    worker_lookups['octo_port'] = octo_port
     worker_lookups['default_params'] = run_setup['profile_defaults']
     worker_lookups['profile_specifics'] = dict([
         (x,run_setup[x]) for x in \
@@ -803,9 +799,6 @@ def random_radio_run_worker(worker_id,uhd_args,profiles,runtime,run_bands,shared
 
         sig_dur = run_params['duration']
         launch_env = os.environ.copy()
-        if(shared_dict['octo_addr'] is not None):
-            launch_env["OCTOCLOCK_SERVER_ADDRESS"]=shared_dict['octo_addr'] 
-            launch_env["OCTOCLOCK_SERVER_PORT"]=str(shared_dict['octo_port'])
         launch_command = profile.start("-a {0:s}".format(uhd_args),run_params)
         print(worker_id,'==',launch_command)
         disable_sig_handler()

@@ -299,13 +299,13 @@ def _get_other_profiles():
     })
 
 def get_all_profile_names():
-    replay_profiles = [x for x in lookup_profiles.unique_profile_names]
+    replay_profiles = get_replay_profile_names()
     ns = _get_other_profiles()
     all_profiles = (replay_profiles 
         + [x for x in ns.lin_profiles]
         + [x for x in ns.fsk_profiles]
         + [x for x in ns.af_profiles]
-        + [x for x in ns.tone_profiles]
+        + [x for x in ns.tone_profiles])
     return all_profiles
 
 def get_replay_profile_names():

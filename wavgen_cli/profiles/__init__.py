@@ -22,7 +22,7 @@ from .afmod import am_constant, am_square, am_triangle, am_sawtooth, \
 
 from .tones import tone,multitone,emanation_exponential
 
-from ..utils import have_pygr,have_freqhopper
+from ..utils import have_pygr
 
 if have_pygr():
     from .analogs import analog_path,digital_path,analog_src
