@@ -11,14 +11,20 @@
     "configs": [
         "noise/*"
     ],
-    "runtime": 900.0,
+    "runtime": 60.0,
     "toggles":{
         "shuffle_timing": false,
         "random_pick_overlapping_waveforms": false,
         "divide_configs": true
     },
     "parameters":{
-        "gain": 70
+        "gain": 70,
+	"bw": {
+	    "min": 50e3,
+	    "max": 1e6,
+	    "dist": "log_uniform"
+	},
+	"duration": 0.75
     },
     "notes":[
         {"parameter_dict":[

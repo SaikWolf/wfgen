@@ -104,23 +104,25 @@ struct noise_type_s {
     unsigned int bps;           // modulation depth (e.g. 1)
 };
 
-const struct noise_type_s noise_types[2] = {
+const unsigned int noise_type_count = 3;
+const struct noise_type_s noise_types[noise_type_count] = {
     // name      fullname                         scheme          bps
 
     // unknown
     {"unknown",  "unknown_noise",                 LIQUID_NOISE_UNKNOWN, 0},
 
     // AWGN
-    {"awgn",     "additive white gaussian noise", LIQUID_NOISE_AWGN, 1}
+    {"awgn",     "additive white gaussian noise", LIQUID_NOISE_AWGN, 1},
+    {"noise",    "additive white gaussian noise", LIQUID_NOISE_AWGN, 1}
 };
 
 inline noise_scheme liquid_getopt_str2noise(const char * _str)
 {
     // compare each string to short name
     unsigned int i;
-    for (i=0; i<2; i++) {
+    for (i=0; i<noise_type_count; i++) {
         if (strcmp(_str,noise_types[i].name)==0)
-            return (noise_scheme)i;
+            return noise_types[i].scheme;
     }
     fprintf(stderr,"warning: liquid_getopt_str2noise(), unknown/unsupported noise scheme : %s\n", _str);
     return LIQUID_NOISE_UNKNOWN;
@@ -185,14 +187,14 @@ inline int liquid_print_noise_modulation_schemes()
 
     // print all available modem schemes
     printf("          ");
-    for (i=1; i<2; i++) {
+    for (i=1; i<noise_type_count; i++) {
         printf("%s", noise_types[i].name);
 
-        if (i != 2-1)
+        if (i != noise_type_count-1)
             printf(", ");
 
         len += strlen(noise_types[i].name);
-        if (len > 48 && i != 2-1) {
+        if (len > 48 && i != noise_type_count-1) {
             len = 10;
             printf("\n          ");
         }

@@ -172,6 +172,7 @@ int main (int argc, char **argv)
             modulation.assign(optarg);
             ms = liquid_getopt_str2mod(optarg);
             if (ms == LIQUID_MODEM_UNKNOWN){
+                std::cout << "ignore the above error, treat as warning.\n";
                 ms_f = liquid_getopt_str2fsk(optarg);
                 if (ms_f == LIQUID_FSK_UNKNOWN){
                     ms_a = liquid_getopt_str2analog(optarg);

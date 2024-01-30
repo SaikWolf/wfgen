@@ -1199,6 +1199,38 @@ def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
     # import pprint
     # pprint.pprint(config_a)
     config_w = deepcopy(config_a) ## working config
+    def try_sanitize(cfg):
+        if isinstance(cfg,dict):
+            for k,v in cfg.items():
+                cfg[k] = try_sanitize(v)
+        elif isinstance(cfg,list):
+            for i,v in enumerate(cfg):
+                cfg[i] = try_sanitize(v)
+        elif isinstance(cfg,str):
+            is_num = True
+            try:
+                nv = float(cfg)
+            except:
+                is_num = False
+            if is_num:
+                if np.abs(nv - np.floor(nv)) > 5*np.finfo(np.single):
+                    return nv
+                try:
+                    nv2 = int(nv)
+                except:
+                    return nv
+                return nv2
+            else:
+                try:
+                    ncfg = yaml.safe_load(cfg)
+                except:
+                    return cfg
+                return ncfg
+        return cfg
+    print('before:',config_w)
+    config_w = try_sanitize(config_w)
+    print('after:',config_w)
+
     hopper = False
     def_rate = None
     if 'mode' in config_w and config_w['mode'].lower() in ['hopper','bursty']:

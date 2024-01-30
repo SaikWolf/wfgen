@@ -41,7 +41,8 @@ For development ease, the repo expects to be wrapped into a virtual environment
 virtualenv wav-gen
 ```
 
-Then the following is appended to the `activate` script for linking
+Then the following needs to be appended to the `activate` script for linking
+Adjust/comment out the `/mnt/ramdisk` creation as desired.
 
 ```bash
 if [[ $LD_LIBRARY_PATH != *${VIRTUAL_ENV}* ]]; then
@@ -89,7 +90,7 @@ The main waveform apps then start with `wavgen_` and have built in help commands
 wavgen_linmod -h
 ```
 
-## The CLI
+# The CLI
 
 The CLI relies on python module cli, and the module can be installed with pip. Though it can
 be installed, the code execution still takes place from the root folder of the repo.
@@ -103,9 +104,9 @@ be installed, the code execution still takes place from the root folder of the r
 The CLI operations in client/server configuration and can have multiple servers connected, but
 multiple clients can result in unexpected behavior.
 
-### Usage
+## Usage
 
-#### Server Side
+### Server Side
 
 ```bash
 python3 wavgen_cli/server.py --help
@@ -131,7 +132,9 @@ any UHD arguments that help find the devices. For example, to limit to only the 
 python3 wavgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
 ```
 
-#### Client Side
+### Client Side (CLI)
+
+The client can be started as a program to use the designed command line interface.
 
 ```bash
 python3 wavgen_cli/client.py --help
@@ -313,6 +316,43 @@ Tracking new source: type=b200,serial=30875A1
 results written to demo_rerun.json
 truth file: demo_rerun.json
 ```
+
+In case just a random run is required with a limited set of signals, this can be achieved with
+the `run_radom` command. With the truth recovered in the same way. An example is shown below.
+Currently limitied to `static` profiles.
+
+```python
+(Cmd) run_random radios 0,1 duration_limits 20,60 bands 2.4e9,2.5e9 bw_limits 50e3,1e6 profiles qpsk
+Starting random run: 940287
+(Cmd) kill 940287sending command: ['kill', '940287']
+kill 940287
+reply: Killing process 940287
+(Cmd) get_truth demo_random.json
+['/tmp/tmphbkcexaa/truth_report_000.json']
+Tracking new source: type=b200,serial=31F59F6
+Tracking new source: type=b200,serial=3164B4D
+results written to demo_random.json
+truth file: demo_random.json
+```
+
+For more complex randomized runs, a scenario can be created.
+This requires a bit more creation in order to successfully run, but an example scenario can be found
+in `wav-gen/scenarios/example_scenario_000.json` which runs a noise waveform for a set time and
+parameter constraints in the directories within directories.
+
+```python
+(Cmd) run_script scenarios/example_scenario_000.json
+Starting scripted run: 1015948
+```
+
+And likewise, the truth file can be pulled in the same fashion.
+
+
+----------------------
+
+Use tab in the CLI to find possible choices.
+
+----------------------
 
 
 ## Known Bugs
