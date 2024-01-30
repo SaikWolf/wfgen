@@ -34,9 +34,6 @@ std::vector<burst> generate_sequence(float bw, unsigned int hop_dur, unsigned in
         std::complex<float> * buf, float center_freq=0.0f, float sample_rate=1.0f,
         modulation_scheme ms = LIQUID_MODEM_QPSK, bool sweep=false);
 
-void export_json(labels *reporter, std::vector<burst> bursts,
-        unsigned int num_loops, double start, double loop_time,
-        double center_freq, double sample_rate);
 
 static bool continue_running(true);
 void signal_interrupt_handler(int) {
@@ -52,23 +49,25 @@ double get_time(){
 int main (int argc, char **argv)
 {
     /* +General */
-    double frequency = 2.46e9;
-    double gain = 60.0;
-    double rate = 16.0e6f;
-    double gain_range = 0.0f;    // software cycle gain range
-    double gain_cycle = 2.0f;    // gain cycle duration
-    double band = 0;
-    double bandwidth = -1;
+    double uhd_tx_freq = 2.46e9;
+    double uhd_tx_rate = 16.0e6f;
+    double uhd_tx_gain = 60.0f;
+    std::string uhd_tx_args{"type=b200"};
+    std::string modulation{"qpsk"};
+    double bw_nr = -1;
+    double bw_f = -1;
 
     /* +Bursty */
     double dwell = 0.5;   // How long should the waveform be on per burst
     double squelch = 0.5; // How long should the burst be silent before next burst
     double period = 5;    // Used in place of 'leave' for a consistent period of bursts
+    double duration    = -1;
+    double span    = 0.9;
 
-    size_t channel = 0; //? is this necessary
-    std::string args{"type=b200"};
     unsigned int nfft = 2400;
-    std::string  json{"usrp_wbofdmgen.json"};
+    unsigned int num_bursts  = 10;
+    int          num_channels= -1;
+    std::string  json{""};
 
     // init time keeping stuff
     const int max_chrono = 10;
@@ -76,32 +75,46 @@ int main (int argc, char **argv)
     memset(chrono_time, 0, max_chrono * sizeof(double));
     chrono_time[0] = get_time();
 
+    modulation_scheme ms = LIQUID_MODEM_QPSK;
 
     // get cli options
     int dopt;
-    while ((dopt = getopt(argc, argv, "hf:r:g:G:j:b:B;d:s:p:c:a")) != EOF)
-    {
-        switch (dopt)
-        {
+    char *strend = NULL;
+    while ((dopt = getopt(argc, argv, "hf:r:g:a:b:B:d:w:q:p:k:j:s:")) != EOF){
+        switch (dopt){
         case 'h':
-        printf("%s [-f <freq:%.1f MHz>] [-r <rate:%.3f MHz>] [-g <gain:%.1f dB>]\n",
-                argv[0], frequency*1e-6f, rate*1e-6f, gain);
-        printf(" [-G <gain_range:%.1f>] [-j <gain_cycle:%.1f>] [-b <band:%.1f>\n", gain_range, gain_cycle, band);
-        printf(" [-B <bandwidth:%.1f>] [-d <dwell:%.1f>] [-s <squelch:%.1f>\n", bandwidth, dwell, squelch);
-        printf(" [-p <period:%.1f>] [-c <channel:%ld>] [-args <args:%s>\n", period, channel, args.c_str());
-        printf(" [-a <args:%s>] [-c <channel:%lu>]\n", args.c_str(), channel);
-        case 'f': frequency  = atof(optarg); break;
-        case 'r': rate       = atof(optarg); break;
-        case 'g': gain       = atof(optarg); break;
-        case 'G': gain_range = atof(optarg); break;
-        case 'j': gain_cycle = atof(optarg); break;
-        case 'b': band       = atof(optarg); break;
-        case 'B': bandwidth  = atof(optarg); break;
-        case 'd': dwell      = atof(optarg); break;
-        case 's': squelch    = atof(optarg); break;
-        case 'p': period     = atof(optarg); break;
-        case 'c': channel    = atoi(optarg); break;
-        case 'a': args.assign(optarg); break;
+            printf("  [ -f <uhd_tx_freq:%.3f MHz> ] [ -r <uhd_tx_rate:%.3f MHz> ] [ -g <uhd_tx_gain:%.3f dB> ]\n", uhd_tx_freq*1.0e-06, uhd_tx_rate*1.0e-06, uhd_tx_gain);
+            printf("  [ -a <uhd_tx_args:%s> ] [ -M <modulation:%s> ] [ -b <bw_nr:%.3f NHz> ]\n", uhd_tx_args.c_str(), modulation.c_str(), bw_nr);
+            printf("  [ -B <bw_f:%.3f MHz> ] [ -d <duration:%.3f s> ] [ -p <period:%.3f s> ]\n", bw_f*1.0e-06, duration, period);
+            printf("  [ -H <num_bursts:%u> ] [ -w <dwell:%.3f s> ] [ -q <squelch:%.3f s> ]\n",num_bursts, dwell, squelch);
+            printf("  [ -k <num_channels:%u> ] [ -s <span:%.3f MHz> ] [ -n <nfft:%u> ]\n", num_channels, span, nfft);
+            printf("  [ -j <json:%s> ]\n", json.c_str());
+            printf(" available modulation schemes:\n");
+            liquid_print_modulation_schemes();
+            return 0;
+        case 'f': uhd_tx_freq   = strtod(optarg, &strend); break;
+        case 'r': uhd_tx_rate   = strtod(optarg, &strend); break;
+        case 'g': uhd_tx_gain   = strtod(optarg, &strend); break;
+        case 'a': uhd_tx_args   .assign(optarg); break;
+        case 'M':{
+            modulation.assign(optarg);
+            ms = liquid_getopt_str2mod(optarg);
+            if (ms == LIQUID_MODEM_UNKNOWN){
+                fprintf(stderr,"error: %s, unknown/unsupported modulation scheme '%s'\n", argv[0], optarg);
+                return 1;
+            }
+            break;
+        }
+        case 'b': bw_nr         = strtod(optarg, &strend); break;
+        case 'B': bw_f          = strtod(optarg, &strend); break;
+        case 'd': duration      = strtod(optarg, &strend); break;
+        case 'p': period        = strtod(optarg, &strend); break;
+        case 'w': dwell         = strtod(optarg, &strend); break;
+        case 'q': squelch       = strtod(optarg, &strend); break;
+        case 'k': num_channels  = strtoul(optarg, &strend, 10); break;
+        case 'n': nfft          = strtoul(optarg, &strend, 10); break;
+        case 's': span          = strtod(optarg, &strend); break;
+        case 'j': json          .assign(optarg); break;
         default: exit(1);
         }
     }
@@ -109,18 +122,21 @@ int main (int argc, char **argv)
     double loop_time = dwell + squelch; // total time for each loop
 
     printf("Using:\n");
-    printf("  freq:        %.3f\n", frequency);
-    printf("  rate:        %.3f\n", rate);
-    printf("  gain:        %.3f\n", gain);
-    printf("  gain_range:  %.3f\n", gain_range);
-    printf("  gain_cycle:  %.3f\n", gain_cycle);
-    printf("  band:        %.3f\n", gain_cycle);
-    printf("  bandwidth:   %.3f\n", gain_cycle);
-    printf("  dwell:       %.3f\n", dwell);
-    printf("  squelch:     %.3f\n", squelch);
-    printf("  period:      %.3f\n", period);
-    printf("  channel:     %ld\n",  channel);
-    printf("  args:        %s\n",   args.c_str());
+    printf("  modulation:   %s\n",modulation.c_str());
+    printf("  freq:         %.3f\n",uhd_tx_freq);
+    printf("  rate:         %.3f\n",uhd_tx_rate);
+    printf("  gain:         %.3f\n",uhd_tx_gain);
+    printf("  args:         %s\n",uhd_tx_args.c_str());
+    printf("  num_bursts:   %d\n",num_bursts);
+    printf("  dwell:        %.3f\n",dwell);
+    printf("  squelch:      %.3f\n",squelch);
+    printf("  bw_f:         %.3f\n",bw_f);
+    printf("  bw_nr:        %.3f\n",bw_nr);
+    printf("  span:         %.3f\n",span);
+    printf("  channels:     %d\n",num_channels);
+    printf("  nfft:         %u\n",nfft);
+    printf("  duration:     %.3f\n",duration);
+    printf("  json:         %s\n",json.c_str());
 
     chrono_time[1] = get_time();
 
@@ -130,12 +146,12 @@ int main (int argc, char **argv)
     md.end_of_burst   = true;  //
     md.has_time_spec  = false;  // set to false to send immediately
 
-    uhd::device_addr_t args_uhd(args);
+    uhd::device_addr_t args_uhd(uhd_tx_args);
     uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(args_uhd);
 
     // try to configure hardware
-    usrp->set_tx_rate(rate);
-    usrp->set_tx_freq(frequency);
+    usrp->set_tx_rate(uhd_tx_rate);
+    usrp->set_tx_freq(uhd_tx_freq);
     usrp->set_tx_gain(0);
 
     // signal generator
@@ -149,10 +165,10 @@ int main (int argc, char **argv)
     uhd::tx_streamer::sptr tx_stream = usrp->get_tx_stream(stream_args);
     // send a mini EOB packet
     tx_stream->send("",0,md);
-    usrp->set_tx_gain(gain);
+    usrp->set_tx_gain(uhd_tx_gain);
 
     // get actual rate
-    rate = usrp->get_tx_rate();
+    uhd_tx_rate = usrp->get_tx_rate();
 
     md.start_of_burst = true;  // never SOB when continuous
     md.end_of_burst   = true;  //
@@ -180,6 +196,7 @@ int main (int argc, char **argv)
     {
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG0000001","TXDL S0000001");
         reporter->modulation = "ofdm";
+        reporter->modulation_src = modulation;
         reporter->start_reports();
     }
     chrono_time[6] = chrono_time[2] + 0.5;
@@ -188,15 +205,12 @@ int main (int argc, char **argv)
     uint64_t xfer = 0, xfer_idx = 0;
     size_t xfer_len = 0;
 
-
+    double send_at = chrono_time[2] + 1.0;
     //! prints LLLLL in here somehwere
     while (continue_running)
     {
         // generate samples to buffer
         gen.generate(buf);
-
-        // send the result to the USRP
-        tx_stream->send(bufs, usrp_buffer.size(), md, 1);
 
         xfer = 0;
         xfer_idx = 0;
@@ -227,11 +241,19 @@ int main (int argc, char **argv)
                 }
             }
         }
+        if (!json.empty()){
+            reporter->append(
+            send_at,
+            double(xfer_len)/uhd_tx_rate,
+            uhd_tx_freq,
+            uhd_tx_rate*bw_nr,
+            "");
+        }
 
         md.start_of_burst = true;
         md.has_time_spec  = true;
-        chrono_time[6] += loop_time;
-        md.time_spec = uhd::time_spec_t(chrono_time[6]);
+        send_at += period;
+        md.time_spec = uhd::time_spec_t(send_at);
     }
 
     // send a mini EOB packet
@@ -243,7 +265,7 @@ int main (int argc, char **argv)
 
     // sleep for a small amount of time to allow USRP buffers to flush
     // usleep(100000);
-    while (get_time() < chrono_time[6] + xfer_counter / rate)
+    while (get_time() < chrono_time[6] + xfer_counter / uhd_tx_rate)
         ;
 
     // finished
@@ -260,7 +282,6 @@ int main (int argc, char **argv)
     // export to .json if requested
     if (!json.empty())
     {
-        // export_json(json, bursts, count, start, loop_time, frequency, rate);
         char misc_buf[100];
         memset(misc_buf, 0, 100);
         snprintf(misc_buf, 100, "        \"start_app\": %.9f,\n", chrono_time[0]);
@@ -283,21 +304,25 @@ int main (int argc, char **argv)
             meta += (std::string(" ") + std::string(argv[arg_idx]));
         }
         reporter->cache_to_misc(meta+"\"\n");
+
+        meta = "";
+        reporter->append(
+            send_at,
+            double(xfer_counter)/uhd_tx_rate,
+            uhd_tx_freq,
+            uhd_tx_rate*bw_nr,
+            "");
+        reporter->activity_type = "unknown"; // FIXME:::: Come back and fix this
+        reporter->set_modulation( "ofdm" );
+        reporter->modulation_src = modulation;
+        reporter->protocol = "unknown";
+        reporter->modality = "multi_carrier";
+        reporter->activity_type = "lowprob_anomaly";
+        reporter->device_origin = uhd_tx_args;
+        reporter->finalize();
+    delete reporter;
     }
 
-    reporter->append(
-        chrono_time[2]+0.5,
-        double(xfer_counter)/rate,
-        frequency,
-        rate*bandwidth);
-    reporter->activity_type = "unknown"; // FIXME:::: Come back and fix this
-    reporter->modulation = "ofdm";
-    reporter->protocol = "unknown";
-    reporter->modality = "multi_carrier";
-    reporter->activity_type = "lowprob_anomaly";
-    reporter->device_origin = args;
-    reporter->finalize();
-    delete reporter;
 
     return 0;
 }
@@ -377,22 +402,5 @@ std::vector<burst> generate_sequence(float bw, unsigned int hop_dur, unsigned in
 
     // return list of bursts
     return bursts;
-}
-
-
-void export_json(labels *reporter, std::vector<burst> bursts,
-        unsigned int num_loops, double start, double loop_time,
-        double center_freq, double sample_rate)
-{
-    for (auto loop=0U; loop<num_loops; loop++) {
-        for (auto burst_info: bursts) {
-            reporter->set_modulation( burst_info.ms );
-            reporter->append(
-                start + burst_info.t0 + loop*loop_time,
-                burst_info.dur,
-                burst_info.fc,
-                burst_info.bw);
-        }
-    }
 }
 

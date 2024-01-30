@@ -12,14 +12,14 @@ labels::labels(std::string _filename,
     source(_source),
     misc("    \"misc\": {\n"),
     count(0), start(-1), stop(-1), freq_lo(-1), freq_hi(-1),
-    eng_bw(0),
     protocol("unknown"),
     modality("unknown"),
     activity_type("lowprob_anomaly"),
     modulation("unknown"),
     modulation_origin("unknown"),
     modulation_src("nil"),
-    device_origin("custom label")
+    device_origin("custom label"),
+    eng_bw(0)
 {
     json_init();
 }
