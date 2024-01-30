@@ -83,6 +83,7 @@ const signal_modulation_s signal_modulation_list[SIGNAL_MODULATION_LIST_LEN]
     {"qam128",       "qam",              LIQUID_MODEM_QAM128,    LIQUID_FSK_UNKNOWN,     LIQUID_ANALOG_UNKNOWN,      LIQUID_NOISE_UNKNOWN},
     {"qam256",       "qam",              LIQUID_MODEM_QAM256,    LIQUID_FSK_UNKNOWN,     LIQUID_ANALOG_UNKNOWN,      LIQUID_NOISE_UNKNOWN},
     {"noise",        "noise",            LIQUID_MODEM_UNKNOWN,   LIQUID_FSK_UNKNOWN,     LIQUID_ANALOG_UNKNOWN,      LIQUID_NOISE_AWGN},
+    {"awgn",         "noise",            LIQUID_MODEM_UNKNOWN,   LIQUID_FSK_UNKNOWN,     LIQUID_ANALOG_UNKNOWN,      LIQUID_NOISE_AWGN},
     {"",             "unknown",          LIQUID_MODEM_UNKNOWN,   LIQUID_FSK_UNKNOWN,     LIQUID_ANALOG_UNKNOWN,      LIQUID_NOISE_UNKNOWN},
 };
 

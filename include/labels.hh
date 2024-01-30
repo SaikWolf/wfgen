@@ -25,19 +25,24 @@ class labels
 
     // set modulation type based on liquid-dsp enumeration
     void set_modulation(modulation_scheme _ms)
-        { modulation_origin.assign(signal_modulation_list[ signal_modulation_map_ms_to_index(_ms) ].name_label);
+        { modulation.assign(signal_modulation_list[ signal_modulation_map_ms_to_index(_ms) ].name_label);
+          modulation_origin.assign(signal_modulation_list[ signal_modulation_map_ms_to_index(_ms) ].name_label);
           modulation_family.assign(signal_modulation_list[ signal_modulation_map_ms_to_index(_ms) ].family_label); }
     void set_modulation(fsk_scheme _ms)
-        { modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msf_to_index(_ms) ].name_label);
+        { modulation.assign(signal_modulation_list[ signal_modulation_map_msf_to_index(_ms) ].name_label);
+          modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msf_to_index(_ms) ].name_label);
           modulation_family.assign(signal_modulation_list[ signal_modulation_map_msf_to_index(_ms) ].family_label); }
     void set_modulation(analog_scheme _ms)
-        { modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msa_to_index(_ms) ].name_label);
+        { modulation.assign(signal_modulation_list[ signal_modulation_map_msa_to_index(_ms) ].name_label);
+          modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msa_to_index(_ms) ].name_label);
           modulation_family.assign(signal_modulation_list[ signal_modulation_map_msa_to_index(_ms) ].family_label); }
     void set_modulation(noise_scheme _ms)
-        { modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msn_to_index(_ms) ].name_label);
+        { modulation.assign(signal_modulation_list[ signal_modulation_map_msn_to_index(_ms) ].name_label);
+          modulation_origin.assign(signal_modulation_list[ signal_modulation_map_msn_to_index(_ms) ].name_label);
           modulation_family.assign(signal_modulation_list[ signal_modulation_map_msn_to_index(_ms) ].family_label); }
     void set_modulation(std::string _modulation)
-        { modulation_origin.assign(signal_modulation_list[ signal_modulation_map_label_to_index(_modulation) ].name_label);
+        { modulation.assign(signal_modulation_list[ signal_modulation_map_label_to_index(_modulation) ].name_label);
+          modulation_origin.assign(signal_modulation_list[ signal_modulation_map_label_to_index(_modulation) ].name_label);
           modulation_family.assign(signal_modulation_list[ signal_modulation_map_label_to_index(_modulation) ].family_label); }
 
     void finalize(){ json_close(); }

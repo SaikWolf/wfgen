@@ -166,7 +166,10 @@ int main (int argc, char **argv)
     labels* reporter;
     if(!json.empty()){
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG1","TXDL S1");
-        reporter->set_modulation("no_answer");
+        if (num_tones == 1)
+            reporter->set_modulation("tone");
+        else
+            reporter->set_modulation("no_answer");
         reporter->eng_bw = max_delta-min_delta+5e3;
     }
     // unsigned long long ticker = 0;

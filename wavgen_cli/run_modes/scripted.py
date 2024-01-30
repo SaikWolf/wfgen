@@ -53,7 +53,7 @@ scripted_parameter_keys = {
         'activity_type',            # can be absent/None
         'freq_lo', 'freq_hi',       ### either these two \
         'span',    'band_center',   ### or these two are needed
-        'mode',                     # constant, bursty, hopper, emanation
+        'mode',                     # static, bursty, hopper, emanation
         'profile',                  # what is being sent
         'rate',                     # sample rate of the radio transmitting
         'bw',                       # Bandwidth of each energy

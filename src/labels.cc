@@ -48,56 +48,59 @@ void labels::json_close()
     double fc = 0.5*(freq_hi + freq_lo);
     double bw =      freq_hi - freq_lo;
 
-    fprintf(fid,"        {\n");
-    fprintf(fid,"            \"report_type\": \"signal\",\n");
-    fprintf(fid,"            \"instance_name\": \"%s\",\n", signal.c_str());
-    fprintf(fid,"            \"activity_type\": \"%s\",\n", activity_type.c_str());
-    fprintf(fid,"            \"reference_time\": %.6f,\n", (stop-start)/2+stop);
-    fprintf(fid,"            \"reference_freq\": %.6f,\n", fc/1000000);
-    fprintf(fid,"            \"protocol\": \"%s\",\n",protocol.c_str());
-    fprintf(fid,"            \"modulation\": \"%s\",\n", modulation.c_str());
-    fprintf(fid,"            \"mod_name_label\": \"%s\",\n", modulation_origin.c_str());
-    fprintf(fid,"            \"mod_family_label\": \"%s\",\n", modulation_family.c_str());
-    fprintf(fid,"            \"mod_src_name\": \"%s\",\n", modulation_src.c_str());
-    fprintf(fid,"            \"modality\": \"%s\",\n", modality.c_str());
-    fprintf(fid,"            \"freq_lo\": %.6f,\n", fc/1000000 - 0.5*bw/1000000);
-    fprintf(fid,"            \"freq_hi\": %.6f,\n", fc/1000000 + 0.5*bw/1000000);
-    fprintf(fid,"            \"bw\": %.6f,\n", bw/1000000);
-    fprintf(fid,"            \"energy_bw\": %.6f,\n",eng_bw);
-    fprintf(fid,"            \"time_start\": %.6f,\n", start);
-    fprintf(fid,"            \"time_stop\": %.6f,\n", stop);
-    fprintf(fid,"            \"duration\": %.6f,\n", stop-start);
-    fprintf(fid,"            \"energy_set\": [\n");
-    for (unsigned int i=0; i<count; i++)
-        fprintf(fid,"                \"%s%06u\"%s\n", prefix.c_str(), i, i==count-1 ? "" : ",");
-    fprintf(fid,"            ],\n");
-    fprintf(fid,"            \"rx_center_freq\": {\n");
-    fprintf(fid,"                \"rx1\": %.6f\n", fc/1000000);
-    fprintf(fid,"            },\n");
-    fprintf(fid,"            \"rx_sample_rate\": {\n");
-    fprintf(fid,"                \"rx1\": 100\n");
-    fprintf(fid,"            },\n");
-    fprintf(fid,"            \"rx_input_snr\": {\n");
-    fprintf(fid,"                \"rx1\": -100 \n");
-    fprintf(fid,"            }\n");
-    fprintf(fid,"        },\n");
-    fprintf(fid,"        {\n");
-    fprintf(fid,"            \"report_type\": \"source\",\n");
-    fprintf(fid,"            \"instance_name\": \"%s\",\n", source.c_str());
-    fprintf(fid,"            \"signal_set\": [\n");
-    fprintf(fid,"                \"%s\"\n", signal.c_str());
-    fprintf(fid,"            ],\n");
-    fprintf(fid,"            \"device_origin\": \"%s\"\n",device_origin.c_str());
-    fprintf(fid,"        }\n");
-    if (misc.length() > 15){
-        fprintf(fid,"    ],\n");
-        fprintf(fid,"%s",misc.c_str());
-        fprintf(fid,"    }\n");
+    if (count > 0){
+        fprintf(fid,"        {\n");
+        fprintf(fid,"            \"report_type\": \"signal\",\n");
+        fprintf(fid,"            \"instance_name\": \"%s\",\n", signal.c_str());
+        fprintf(fid,"            \"activity_type\": \"%s\",\n", activity_type.c_str());
+        fprintf(fid,"            \"reference_time\": %.6f,\n", (stop-start)/2+stop);
+        fprintf(fid,"            \"reference_freq\": %.6f,\n", fc/1000000);
+        fprintf(fid,"            \"protocol\": \"%s\",\n",protocol.c_str());
+        fprintf(fid,"            \"modulation\": \"%s\",\n", modulation.c_str());
+        fprintf(fid,"            \"mod_name_label\": \"%s\",\n", modulation_origin.c_str());
+        fprintf(fid,"            \"mod_family_label\": \"%s\",\n", modulation_family.c_str());
+        fprintf(fid,"            \"mod_src_name\": \"%s\",\n", modulation_src.c_str());
+        fprintf(fid,"            \"modality\": \"%s\",\n", modality.c_str());
+        fprintf(fid,"            \"modification\": \"no_modification\",\n");
+        fprintf(fid,"            \"freq_lo\": %.6f,\n", fc/1000000 - 0.5*bw/1000000);
+        fprintf(fid,"            \"freq_hi\": %.6f,\n", fc/1000000 + 0.5*bw/1000000);
+        fprintf(fid,"            \"bw\": %.6f,\n", bw/1000000);
+        fprintf(fid,"            \"energy_bw\": %.6f,\n",eng_bw);
+        fprintf(fid,"            \"time_start\": %.6f,\n", start);
+        fprintf(fid,"            \"time_stop\": %.6f,\n", stop);
+        fprintf(fid,"            \"duration\": %.6f,\n", stop-start);
+        fprintf(fid,"            \"energy_set\": [\n");
+        for (unsigned int i=0; i<count; i++)
+            fprintf(fid,"                \"%s%06u\"%s\n", prefix.c_str(), i, i==count-1 ? "" : ",");
+        fprintf(fid,"            ],\n");
+        fprintf(fid,"            \"rx_center_freq\": {\n");
+        fprintf(fid,"                \"rx1\": %.6f\n", fc/1000000);
+        fprintf(fid,"            },\n");
+        fprintf(fid,"            \"rx_sample_rate\": {\n");
+        fprintf(fid,"                \"rx1\": 100\n");
+        fprintf(fid,"            },\n");
+        fprintf(fid,"            \"rx_input_snr\": {\n");
+        fprintf(fid,"                \"rx1\": -100 \n");
+        fprintf(fid,"            }\n");
+        fprintf(fid,"        },\n");
+        fprintf(fid,"        {\n");
+        fprintf(fid,"            \"report_type\": \"source\",\n");
+        fprintf(fid,"            \"instance_name\": \"%s\",\n", source.c_str());
+        fprintf(fid,"            \"signal_set\": [\n");
+        fprintf(fid,"                \"%s\"\n", signal.c_str());
+        fprintf(fid,"            ],\n");
+        fprintf(fid,"            \"device_origin\": \"%s\"\n",device_origin.c_str());
+        fprintf(fid,"        }\n");
+        if (misc.length() > 15){
+            fprintf(fid,"    ],\n");
+            fprintf(fid,"%s",misc.c_str());
+            fprintf(fid,"    }\n");
+        }
+        else{
+            fprintf(fid,"    ]\n");
+        }
+        fprintf(fid,"}\n");
     }
-    else{
-        fprintf(fid,"    ]\n");
-    }
-    fprintf(fid,"}\n");
     fclose(fid);
     fid = NULL;
     std::cout << ".json log written to " << filename << std::endl;

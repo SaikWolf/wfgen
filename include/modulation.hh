@@ -20,7 +20,7 @@ struct signal_modulation_s {
     noise_scheme      n_scheme;
 };
 
-#define SIGNAL_MODULATION_LIST_LEN (79)
+#define SIGNAL_MODULATION_LIST_LEN (80)
 
 // list of modulation/mapping
 extern const signal_modulation_s signal_modulation_list[SIGNAL_MODULATION_LIST_LEN];

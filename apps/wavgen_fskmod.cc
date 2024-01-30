@@ -153,12 +153,7 @@ int main (int argc, char **argv)
         else bw_f = symbol_rate*(M+1); //fsk
         bw_nr = bw_f/uhd_tx_rate;
     }
-    // std::cout << "debug: (" << bw_nr << "," << bw_f << "," << symbol_rate <<")\n";
 
-    // double freq_dist = mod_index*symbol_rate <- distance between two symbols
-    // double bandwidth = (M-1)*freq_dist + 2*symbol_rate;
-    // double bandwidth = (M-1)*mod_index*symbol_rate + 2*symbol_rate;
-    // double bandwidth = ((M-1)*mod_index + 2)*symbol_rate;
     if(symbol_rate <= 0){
         if(ms_f == 25){
             //gmsk

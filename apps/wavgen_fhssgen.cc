@@ -122,6 +122,7 @@ int main (int argc, char **argv)
     int          num_loops   = -1;      // number of loops to run
     int          num_channels= -1;      // number of channels to run
     double       src_fq      = -1;
+    double       src_period  = -1;
     double       period      = -1;
     double       mod_index   = 1.0f;
     double       symbol_rate = -1;
@@ -145,7 +146,7 @@ int main (int argc, char **argv)
     uint8_t analog_hop(0),digital_hop(1);
     int dopt;
     char *strend = NULL;
-    while ((dopt = getopt(argc,argv,"hf:r:g:a:M:b:B:d:p:J:K:x:R:H:w:q:s:k:S:l:L:j:W:C:P:")) != EOF) {
+    while ((dopt = getopt(argc,argv,"hf:r:g:a:M:b:B:d:p:J:K:x:R:H:w:q:s:k:S:l:L:j:W:C:P:F:")) != EOF) {
         switch (dopt) {
         case 'h':
             printf("Usage of %s [options]\n",argv[0]);
@@ -157,7 +158,7 @@ int main (int argc, char **argv)
             printf("  [ -q <squelch:%.3f s> ] [ -s <span:%.3f MHz> ] [ -k <num_channels:%u> ]\n", squelch, span*1.0e-06, num_channels);
             printf("  [ -S <sweep:%u> ] [ -l <num_loops:%u> ] [ -L <loop_delay:%.3f s> ]\n", sweep, num_loops, loop_delay);
             printf("  [ -j <json:%s> ] [ -W <file_dump:%s> ] [ -C <cut_radio:%u> ]\n", json.c_str(), file_dump.c_str(), cut_radio);
-            printf("  [ -P <cpf_type:%d> ]\n", cpf_type);
+            printf("  [ -P <cpf_type:%d> ] [ -F <src_fq:%.3f MHz> ]\n", cpf_type, src_fq);
             printf(" available modulation schemes:\n");
             liquid_print_modulation_schemes();
             liquid_print_fsk_modulation_schemes();
@@ -206,14 +207,15 @@ int main (int argc, char **argv)
         case 'W': file_dump     .assign(optarg); break;
         case 'C': cut_radio   = strtoul(optarg, &strend, 10); break;
         case 'P': cpf_type    =  strtol(optarg, &strend, 10); break;
+        case 'F': src_fq      =  strtod(optarg, &strend); break;
         default: exit(1);
         }
 }
 
-    if(period > 0 && src_fq > 0) throw std::runtime_error("Only define one of (period, src_rate)");
-    else if(period < 0 && src_fq < 0) src_fq = 0.2;
-    else if(period > 0) src_fq = 1/period;
-    else period = 1/src_fq;
+    if(src_period > 0 && src_fq > 0) throw std::runtime_error("Only define one of (src_period, src_rate)");
+    else if(src_period < 0 && src_fq < 0) src_fq = 0.2;
+    else if(src_period > 0) src_fq = 1/src_period;
+    else src_period = 1/src_fq;
 
     if(bw_nr > 0.0){
         bw_f = bw_nr * uhd_tx_rate; // specified relative, overwriting other
@@ -224,10 +226,13 @@ int main (int argc, char **argv)
         std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
     }
 
+    hop_time = period;
+    std::cout << "dwell: " << dwell << " | squelch: " << squelch << " | period: " << period << std::endl;
     if(dwell > 0 && squelch > 0 && hop_time > 0){
-        throw std::runtime_error("specify up to two of -0 <squelch> -1 <dwell> -t <period>");
+        if (std::abs(dwell+squelch - hop_time) > 1e-4)
+            throw std::runtime_error("specify up to two of -q <squelch> -w <dwell> -p <period>");
     }
-    else if (dwell < 0 && squelch < 0 && hop_time < 0){
+    else if (dwell <= 0 && squelch <= 0 && hop_time <= 0){
         dwell = 0.05;
         hop_time = dwell;
     }
@@ -310,8 +315,8 @@ int main (int argc, char **argv)
             else if(ms_f > 16 && ms_f < 25) cpf_type = 0;
             else if(ms_f > 24) cpf_type = 3;
             else if (ms_f < 17 && cpf_type == 20) cpf_type = 0;
-            unsigned int M = 1<<((((unsigned int)ms_f)-1)%8+1);
-            unsigned int k;
+            M = 1<<((((unsigned int)ms_f)-1)%8+1);
+            k;
             // double freq_dist = mod_index*symbol_rate
             // double bandwidth = (M-1)*freq_dist + 2*symbol_rate;
             // double bandwidth = (M-1)*mod_index*symbol_rate + 2*symbol_rate;
@@ -418,6 +423,7 @@ int main (int argc, char **argv)
     printf("  channels:     %d\n",num_channels);
     printf("  sweep:        %u\n",sweep);
     printf("  duration:     %.3f\n",duration);
+    printf("  idle_time:    %.3f\n",loop_delay);
     printf("  loops:        %d\n",num_loops);
     printf("  json:         %s\n",json.c_str());
     if(ms == LIQUID_MODEM_UNKNOWN && ms_f != LIQUID_FSK_UNKNOWN){

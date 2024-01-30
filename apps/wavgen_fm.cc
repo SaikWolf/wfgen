@@ -106,26 +106,47 @@ int main (int argc, char **argv)
         std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
     }
 
-    a_src_t real_anlg = str2analog_source_type(modulation.c_str());
-    d_src_t real_digi = str2digital_source_type(modulation.c_str());
-    m_src_t real_mesg = str2message_source_type(modulation.c_str());
-    if(real_anlg == INVALID_ANALOG && real_digi == INVALID_DIGITAL && real_mesg == INVALID_MESSAGE){
-        std::cout << (int)real_anlg << " " << (int)real_digi << " " << (int)real_mesg << std::endl;
+    analog_scheme afscheme = liquid_getopt_str2analog(modulation.c_str());
+    if(afscheme == LIQUID_ANALOG_UNKNOWN){
+        std::cout << (int)afscheme << std::endl;
         printf("Invalid modulation specified: %s\n",modulation.c_str());
         exit(1);
     }
-    if(real_anlg != INVALID_ANALOG){
-        std::cout << "current: " << modulation << " " <<(int(real_anlg)) << std::endl;
-        modulation = analog_source_type2str(real_anlg);
+    switch(afscheme){
+        case (LIQUID_ANALOG_FM_CONSTANT):{
+            modulation = "constant";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_SQUARE):{
+            modulation = "square";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_TRIANGLE):{
+            modulation = "triangle";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_SAWTOOTH):{
+            modulation = "sawtooth";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_SINUSOID):{
+            modulation = "sinusoid";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_WAV_FILE):{
+            modulation = "wav";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_RAND_UNI):{
+            modulation = "rand_uni";
+            break;
+        }
+        case (LIQUID_ANALOG_FM_RAND_GAUSS):{
+            modulation = "rand_gauss";
+            break;
+        }
     }
-    else if(real_digi != INVALID_DIGITAL){
-        std::cout << "current: " << modulation << " " <<(int(real_digi)) << std::endl;
-        modulation = digital_source_type2str(real_digi);
-    }
-    else if(real_mesg != INVALID_MESSAGE){
-        std::cout << "current: " << modulation << " " <<(int(real_mesg)) << std::endl;
-        modulation = message_source_type2str(real_mesg);
-    }
+
     std::cout << "result: " << modulation << std::endl;
 
     printf("Using:\n");
@@ -183,6 +204,7 @@ int main (int argc, char **argv)
     double delta = 0;
     if(!json.empty()){
         reporter = new labels(json.c_str(),"TXDL T","TXDL SG1","TXDL S1");
+        reporter->set_modulation(modulation);
     }
     real_source wrap_source = NULL;
     void* gen_peek = NULL;
@@ -434,7 +456,7 @@ int main (int argc, char **argv)
         reporter->start_reports();
         reporter->append(
             chrono_time[2]+0.5,
-            double(0)/uhd_tx_rate,
+            double(xfer_counter)/uhd_tx_rate,
             uhd_tx_freq,
             uhd_tx_rate*bw_nr,
             meta);

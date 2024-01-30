@@ -74,7 +74,7 @@ symstreamrfcf symstreamrfcf_create_fsk( int          _ftype,
     // set input parameters
     q->bps         = _bps;
     q->M           = 1<<_bps;
-    // mod_idx = freq_dist / symbol_rate (freq_dist is [0,fd], or single sided inner distance)
+    // mod_idx = freq_dist / symbol_rate
     q->h           = _h;
     // k = samples / symbol ---> 1/k = symbol/sample
     q->k           = _k;
@@ -151,7 +151,7 @@ symstreamrfcf symstreamrfcf_create_fsk( int          _ftype,
         int_buf_len = _k;
     }
     else{
-        printf("Symb Interp (2x): type(%u) k(%u) m(%u) beta(%f) 0\n",q->filter_type,q->k,q->m,q->beta);
+        printf("Symb Interp (2x): type(%u) k(%u) m(%u) beta(%f) 0\n",q->filter_type,2*q->k,q->m,q->beta);
         q->interp = firinterp_crcf_create_prototype(q->filter_type, 2, q->m, 0.25f, 0);
         int_buf_len = 2*_k;
     }
