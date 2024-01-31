@@ -18,25 +18,31 @@ class wbofdmgen
 {
   public:
     wbofdmgen(unsigned int _nfft=4800,
-              unsigned int _cplen=20);
+              unsigned int _cplen=20,
+              unsigned int _ncarrier=3840,
+              unsigned int _ms=LIQUID_MODEM_QPSK);
     ~wbofdmgen();
 
     // get expected output buffer length
-    unsigned int get_buf_len() const {
-        return (nfft+cplen)*OMP_THREADS; }
+    unsigned int get_buf_len(unsigned int symbols) const {
+        return (nfft+cplen)*symbols; }
 
     //
-    void generate(std::complex<float> * _buf);
+    void generate(std::complex<float> * _buf, unsigned int symbols);
 
   protected:
     unsigned int nfft;      // FFT size
     unsigned int cplen;     // cyclic prefix length
+    unsigned int ncar;
+    unsigned int ms;
     float *      gain;      // subcarrier gains
+
 
     // repeat per thread
     std::complex<float> * buf_time[OMP_THREADS];    // shape: (nfft,)
     std::complex<float> * buf_freq[OMP_THREADS];    // shape: (nfft,)
     fftwf_plan            fft[OMP_THREADS];         //
+    modemcf               modem[OMP_THREADS];
 };
 
 #endif /* __WBOFDMGEN_HH__ */

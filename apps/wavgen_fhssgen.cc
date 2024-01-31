@@ -522,7 +522,7 @@ int main (int argc, char **argv)
     usrp->set_tx_gain(0);
     usrp->set_tx_rate(uhd_tx_rate);
     usrp->set_tx_freq(uhd_tx_freq);
-    usrp->set_tx_bandwidth(uhd_tx_rate);
+    usrp->set_tx_bandwidth(uhd_tx_rate*span*1.05);
 
     // stream
     std::vector<size_t> channel_nums;

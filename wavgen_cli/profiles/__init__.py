@@ -22,6 +22,8 @@ from .afmod import am_constant, am_square, am_triangle, am_sawtooth, \
 
 from .tones import tone,multitone,emanation_exponential
 
+from .ofdm import ofdm,wifi_ag,wifi_ac,lte
+
 from ..utils import have_pygr
 
 if have_pygr():
@@ -40,6 +42,8 @@ from .fskmod import available_mods as fskmod_available_mods
 from .afmod import available_mods as afmod_available_mods
 from .tones import available_mods as tones_available_mods
 # from .tones import available_options as tones_available_options
+from .ofdm import available_mods as ofdm_available_mods
+from .ofdm import available_subcarrier_mods as ofdm_submods
 
 from ._profile import get_all_profile_names,get_replay_profile_names,\
                     get_defined_profile_names, extract_profile_by_name,\

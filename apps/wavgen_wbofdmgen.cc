@@ -8,6 +8,8 @@
 #include <csignal>
 #include <uhd/usrp/multi_usrp.hpp>
 
+#include <random>
+
 #include "liquid.h"
 #include "labels.hh"
 #include "wbofdmgen.hh"
@@ -65,7 +67,11 @@ int main (int argc, char **argv)
     double span    = 0.9;
 
     unsigned int nfft = 2400;
+    unsigned int ncar = 1920;
+    unsigned int cplen = 20;
     unsigned int num_bursts  = 10;
+    uint16_t min_syms = 0;
+    uint16_t max_syms = 0;
     int          num_channels= -1;
     std::string  json{""};
 
@@ -80,7 +86,7 @@ int main (int argc, char **argv)
     // get cli options
     int dopt;
     char *strend = NULL;
-    while ((dopt = getopt(argc, argv, "hf:r:g:a:b:B:d:w:q:p:k:j:s:")) != EOF){
+    while ((dopt = getopt(argc, argv, "hf:r:g:a:b:B:d:w:q:p:k:j:s:M:H:k:n:U:c:u:v:")) != EOF){
         switch (dopt){
         case 'h':
             printf("  [ -f <uhd_tx_freq:%.3f MHz> ] [ -r <uhd_tx_rate:%.3f MHz> ] [ -g <uhd_tx_gain:%.3f dB> ]\n", uhd_tx_freq*1.0e-06, uhd_tx_rate*1.0e-06, uhd_tx_gain);
@@ -88,7 +94,8 @@ int main (int argc, char **argv)
             printf("  [ -B <bw_f:%.3f MHz> ] [ -d <duration:%.3f s> ] [ -p <period:%.3f s> ]\n", bw_f*1.0e-06, duration, period);
             printf("  [ -H <num_bursts:%u> ] [ -w <dwell:%.3f s> ] [ -q <squelch:%.3f s> ]\n",num_bursts, dwell, squelch);
             printf("  [ -k <num_channels:%u> ] [ -s <span:%.3f MHz> ] [ -n <nfft:%u> ]\n", num_channels, span, nfft);
-            printf("  [ -j <json:%s> ]\n", json.c_str());
+            printf("  [ -U <used_carriers:%u> ] [ -c <cyclic_prefix:%u> ] [ -j <json:%s> ]\n", ncar, cplen, json.c_str());
+            printf("  [ -u <min_symbols:%u> ] [ -v <max_symbols:%u> ]\n", min_syms, max_syms);
             printf(" available modulation schemes:\n");
             liquid_print_modulation_schemes();
             return 0;
@@ -111,32 +118,64 @@ int main (int argc, char **argv)
         case 'p': period        = strtod(optarg, &strend); break;
         case 'w': dwell         = strtod(optarg, &strend); break;
         case 'q': squelch       = strtod(optarg, &strend); break;
+        case 'H': num_bursts    = strtoul(optarg, &strend, 10); break;
         case 'k': num_channels  = strtoul(optarg, &strend, 10); break;
         case 'n': nfft          = strtoul(optarg, &strend, 10); break;
+        case 'U': ncar          = strtoul(optarg, &strend, 10); break;
+        case 'u': min_syms      = strtoul(optarg, &strend, 10); break;
+        case 'v': max_syms      = strtoul(optarg, &strend, 10); break;
+        case 'c': cplen         = strtoul(optarg, &strend, 10); break;
         case 's': span          = strtod(optarg, &strend); break;
         case 'j': json          .assign(optarg); break;
         default: exit(1);
         }
     }
 
+
+    if(bw_nr > 0.0){
+        bw_f = bw_nr * uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_nr specified directly as: " << bw_nr << " for a bw_f: " << bw_f << "Hz at rate: " << uhd_tx_rate << "Hz\n";
+    }
+    else if(bw_f > 0.0){
+        bw_nr = bw_f / uhd_tx_rate; // specified relative, overwriting other
+        std::cout << "bw_f specified directly as: " << bw_f << " Hz at rate: " << uhd_tx_rate << "Hz for a bw_nr: " << bw_nr << std::endl;
+    }
+
+    if(min_syms==0 && max_syms==0){
+        min_syms = max_syms = 512;
+    }
+    else if (min_syms > 0 && max_syms == 0){
+        max_syms = min_syms;
+    }
+
+    std::random_device *rd = new std::random_device;
+    std::mt19937 rgen((*rd)());
+    std::uniform_int_distribution<uint16_t> syms_dist(min_syms,max_syms);
+    delete rd;
+
     double loop_time = dwell + squelch; // total time for each loop
 
     printf("Using:\n");
-    printf("  modulation:   %s\n",modulation.c_str());
-    printf("  freq:         %.3f\n",uhd_tx_freq);
-    printf("  rate:         %.3f\n",uhd_tx_rate);
-    printf("  gain:         %.3f\n",uhd_tx_gain);
-    printf("  args:         %s\n",uhd_tx_args.c_str());
-    printf("  num_bursts:   %d\n",num_bursts);
-    printf("  dwell:        %.3f\n",dwell);
-    printf("  squelch:      %.3f\n",squelch);
-    printf("  bw_f:         %.3f\n",bw_f);
-    printf("  bw_nr:        %.3f\n",bw_nr);
-    printf("  span:         %.3f\n",span);
-    printf("  channels:     %d\n",num_channels);
-    printf("  nfft:         %u\n",nfft);
-    printf("  duration:     %.3f\n",duration);
-    printf("  json:         %s\n",json.c_str());
+    printf("  modulation:    %s\n",modulation.c_str());
+    printf("  freq:          %.3f\n",uhd_tx_freq);
+    printf("  rate:          %.3f\n",uhd_tx_rate);
+    printf("  gain:          %.3f\n",uhd_tx_gain);
+    printf("  args:          %s\n",uhd_tx_args.c_str());
+    printf("  num_bursts:    %d\n",num_bursts);
+    printf("  dwell:         %.3f\n",dwell);
+    printf("  squelch:       %.3f\n",squelch);
+    printf("  period:        %.3f\n",period);
+    printf("  bw_f:          %.3f\n",bw_f);
+    printf("  bw_nr:         %.3f\n",bw_nr);
+    printf("  span:          %.3f\n",span);
+    printf("  channels:      %d\n",num_channels);
+    printf("  nfft:          %u\n",nfft);
+    printf("  used_carriers: %u\n",ncar);
+    printf("  cplen:         %u\n",cplen);
+    printf("  min_syms:      %u\n",min_syms);
+    printf("  max_syms:      %u\n",max_syms);
+    printf("  duration:      %.3f\n",duration);
+    printf("  json:          %s\n",json.c_str());
 
     chrono_time[1] = get_time();
 
@@ -153,9 +192,10 @@ int main (int argc, char **argv)
     usrp->set_tx_rate(uhd_tx_rate);
     usrp->set_tx_freq(uhd_tx_freq);
     usrp->set_tx_gain(0);
+    usrp->set_tx_bandwidth(bw_f*1.05);
 
     // signal generator
-    wbofdmgen gen(nfft);
+    wbofdmgen gen(nfft,cplen,ncar,ms);
 
     // stream
     std::vector<size_t> channel_nums;
@@ -175,7 +215,7 @@ int main (int argc, char **argv)
     md.has_time_spec  = true;  // set to false to send immediately
 
     // vector buffer to send data to USRP
-    auto buf_len = gen.get_buf_len();
+    auto buf_len = gen.get_buf_len(max_syms);
     std::vector<std::complex<float>> usrp_buffer(buf_len);
 
     // buffer of buffers? I guess?
@@ -200,22 +240,24 @@ int main (int argc, char **argv)
         reporter->start_reports();
     }
     chrono_time[6] = chrono_time[2] + 0.5;
+    double send_at = chrono_time[6];
     md.time_spec = uhd::time_spec_t(chrono_time[6]);
     uint64_t xfer_counter = 0;
     uint64_t xfer = 0, xfer_idx = 0;
     size_t xfer_len = 0;
+    uint16_t syms = syms_dist(rgen);
 
-    double send_at = chrono_time[2] + 1.0;
-    //! prints LLLLL in here somehwere
     while (continue_running)
     {
         // generate samples to buffer
-        gen.generate(buf);
+
+        gen.generate(buf,syms);
 
         xfer = 0;
         xfer_idx = 0;
         xfer_counter = 0;
-        xfer_len = usrp_buffer.size();
+        // xfer_len = usrp_buffer.size();
+        xfer_len = gen.get_buf_len(syms);
         for(size_t cidx = 0; cidx < channel_nums.size(); cidx++){
             buf_ptr[cidx] = bufs[cidx];
         }
@@ -224,10 +266,10 @@ int main (int argc, char **argv)
             //? changed this to 1 because xfer kept returning 0, now it returns the same as xfer_len
             //? but still saying 'L' for late
             xfer = tx_stream->send(buf_ptr, xfer_len, md, 1); 
-            printf("xfer(%ld) = xfer_len(%ld)\n", xfer, xfer_len);
+            // printf("xfer(%ld) = xfer_len(%ld)\n", xfer, xfer_len);
 
             if(xfer < xfer_len){
-                printf("xfer(%ld) < xfer_len(%ld)\n", xfer, xfer_len);
+                // printf("xfer(%ld) < xfer_len(%ld)\n", xfer, xfer_len);
                 xfer_counter += xfer;
                 xfer_len -= xfer;
                 xfer_idx += xfer;
@@ -252,6 +294,7 @@ int main (int argc, char **argv)
 
         md.start_of_burst = true;
         md.has_time_spec  = true;
+        syms = syms_dist(rgen);
         send_at += period;
         md.time_spec = uhd::time_spec_t(send_at);
     }

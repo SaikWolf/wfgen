@@ -123,6 +123,7 @@ int main (int argc, char **argv)
     usrp->set_tx_rate(uhd_tx_rate);
     usrp->set_tx_freq(uhd_tx_freq);
     usrp->set_tx_gain(0);
+    usrp->set_tx_bandwidth(max_delta-min_delta+5e3);
 
     // set up the metadta flags
     uhd::tx_metadata_t md;

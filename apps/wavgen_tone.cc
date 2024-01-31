@@ -65,7 +65,8 @@ int main (int argc, char **argv)
         }
     }
 
-
+    double bw_f = 5e3;
+    double bw_nr = bw_f/uhd_tx_rate;
 
     printf("Using:\n");
     printf("  freq:         %.3f\n",uhd_tx_freq);
@@ -89,6 +90,7 @@ int main (int argc, char **argv)
     usrp->set_tx_rate(uhd_tx_rate);
     usrp->set_tx_freq(uhd_tx_freq);
     usrp->set_tx_gain(0);
+    usrp->set_tx_bandwidth(bw_f*1.05);
 
     // set up the metadta flags
     uhd::tx_metadata_t md;

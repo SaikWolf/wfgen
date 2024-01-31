@@ -180,6 +180,7 @@ int main (int argc, char **argv)
     usrp->set_tx_rate(uhd_tx_rate);
     usrp->set_tx_freq(uhd_tx_freq);
     usrp->set_tx_gain(uhd_tx_gain);
+    usrp->set_tx_bandwidth(bw_f);
 
     // set up the metadta flags
     uhd::tx_metadata_t md;

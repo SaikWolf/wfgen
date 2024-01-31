@@ -79,7 +79,11 @@ def get_base_options(style='static',sub_type=None):
     _bursty_options = _static_options + ['dwell','squelch','period']
     _hopper_options = _bursty_options + ['num_bursts','span','num_channels','linear_hop',
                                          'loop_delay','num_loops']
-    if style == 'bursty':
+    _ofdm_options = _hopper_options + ['nfft','used_carriers','cplen','min_syms','max_syms',
+                                       'car_mod']
+    if style == 'ofdm':
+        return _ofdm_options
+    elif style == 'bursty':
         return _bursty_options
     elif style == 'hopper':
         return _hopper_options
@@ -99,7 +103,10 @@ def get_base_flags(style='static',sub_type=None):
     _bursty_options = _static_options + ['-w','-q','-p']
     _hopper_options = _bursty_options + ['-H','-s','-k','-S',
                                          '-L','-l']
-    if style == 'bursty':
+    _ofdm_options = _hopper_options + ['-n','-U','-c','-u','-v',None]
+    if style == 'ofdm':
+        return _ofdm_options
+    elif style == 'bursty':
         return _bursty_options
     elif style == 'hopper':
         return _hopper_options
