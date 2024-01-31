@@ -5,6 +5,13 @@ Waveform generator designed to create waveforms in file or over the air format.
 This toolkit is under development and no warranty is expressed or implied with.
 USE AT OWN RISK.
 
+## Author
+
+- Initial worker on applications and supporting code: Joseph Gaeddert
+- Continued development and CLI: Bill Clark
+
+Contact: bill.clark@vt.edu
+
 ## Install
 
 This has largely been developed and tested on Ubuntu 20.04/22.04.
