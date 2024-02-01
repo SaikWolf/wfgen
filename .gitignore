@@ -1,0 +1,7 @@
+**/*.o
+build/*
+__pycache__/*
+**/build/*
+**/__pycache__/*
+wavgen_cli.egg-info
+
