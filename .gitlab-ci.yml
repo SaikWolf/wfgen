@@ -82,20 +82,20 @@ run:
   #   paths:
   #     - dist/*.whl
 
-pages:
-  tags: [cpu,docker]
-  stage: pages
-  script:
-    # - source /root/wg_dev/bin/activate
-    - pip3 install sphinx sphinx-rtd-theme
-    - cd docs
-    - make html
-    - mv build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+# pages:
+#   tags: [cpu,docker]
+#   stage: pages
+#   script:
+#     # - source /root/wg_dev/bin/activate
+#     - pip3 install sphinx sphinx-rtd-theme
+#     - cd docs
+#     - make html
+#     - mv build/html/ ../public/
+#   artifacts:
+#     paths:
+#       - public
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # # deploy:
 # #   stage: deploy
