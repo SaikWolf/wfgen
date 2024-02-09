@@ -13,6 +13,7 @@ image: ubuntu:22.04
 stages:
   - test_c
   - run_p
+
 #  - pages
 
 # services:
