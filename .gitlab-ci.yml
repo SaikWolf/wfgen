@@ -13,7 +13,7 @@ image: ubuntu:22.04
 stages:
   - test_c
   - run_p
-  - pages
+#  - pages
 
 # services:
 # #   # just going to hope the ci/cd system has these
