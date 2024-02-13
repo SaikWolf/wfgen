@@ -1,9 +1,12 @@
-# Waveform Gen
+# WFGen
 
 Waveform generator designed to create waveforms in file or over the air format.
 
 This toolkit is under development and no warranty is expressed or implied with.
 USE AT OWN RISK.
+
+It is assumed that this repo has been downloaded and can be installed with git.
+The top level folder of this repo is assumed to be `wfgen`
 
 ## Author
 
@@ -45,11 +48,15 @@ Assuming tools and libraries are installed and available
 For development ease, the repo expects to be wrapped into a virtual environment
 
 ```bash
-virtualenv wfgen
+virtualenv wfgen-dev
 ```
 
 Then the following needs to be appended to the `activate` script for linking
 Adjust/comment out the `/mnt/ramdisk` creation as desired.
+
+Alternatively, the script at `scripts/wfgen_env.sh` can be used in place of
+altering the activate script. This will try to load what is needed into the
+environment and will set `WFGEN_ENV=1` if fully successful.
 
 ```bash
 if [[ $LD_LIBRARY_PATH != *${VIRTUAL_ENV}* ]]; then
@@ -59,18 +66,20 @@ if [[ $LIBRARY_PATH != *${VIRTUAL_ENV}* ]]; then
     export LIBRARY_PATH="${VIRTUAL_ENV}/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
 fi
 if [ ! -z ${AUDIO_FOLDER+x} ]; then
+    RAMDISK_SIZE="4g" ## change as desired
     if [ ! -d "/mnt/ramdisk/$(basename $AUDIO_FOLDER)" ]; then
         if [ ! -d "/mnt/ramdisk" ]; then
             sudo mkdir /mnt/ramdisk
         fi
-        sudo mount -t tmpfs -o size=15g tmpgs /mnt/ramdisk
+        sudo mount -t tmpfs -o size=${RAMDISK_SIZE} tmpgs /mnt/ramdisk
         cp -r $AUDIO_FOLDER /mnt/ramdisk/
     fi
     if [ -z ${WFGEN_AUDIO_FOLDER+x} ]; then
         export WFGEN_AUDIO_FOLDER="/mnt/ramdisk/$(basename $AUDIO_FOLDER)"
     fi
 else
-    echo "AUDIO_FOLDER isn't set, so analog waveforms won't work properly unless WFGEN_AUDIO_FOLDER is set manually"
+    echo "AUDIO_FOLDER isn't set, so analog waveforms won't work properly"
+    echo " Need to set WFGEN_AUDIO_FOLDER manually"
 fi
 ```
 
@@ -105,7 +114,7 @@ be installed, the code execution still takes place from the root folder of the r
 ### Install (as tested)
 
 ```bash
-(wfgen) wfgen$ pip install -e .
+(wfgen-dev) wfgen$ pip install -e .
 ```
 
 The CLI operations in client/server configuration and can have multiple servers connected, but
@@ -116,7 +125,7 @@ multiple clients can result in unexpected behavior.
 ### Server Side
 
 ```bash
-python3 wfgen_cli/server.py --help
+python3 wfgen/server.py --help
 usage: server.py [-h] [--addr ADDR] [--port PORT] [--octo-addr OCTO_ADDR] [--octo-port OCTO_PORT]
                  [--uhd-args UHD_ARGS] [--log-server]
 
@@ -127,7 +136,7 @@ optional arguments:
   --uhd-args UHD_ARGS   Limit to devices whose flag provided will find (def: all uhd devices)
   --log-server          Use if a log-server is active (meant for debugging)
 
-python3 wfgen_cli/server.py --addr 127.0.0.1
+python3 wfgen/server.py --addr 127.0.0.1
 Starting server...started
 ```
 
@@ -136,7 +145,7 @@ all UHD USRP devices. To constrain to only specific radios `--uhd-args` can be u
 any UHD arguments that help find the devices. For example, to limit to only the B2XX series devices
 
 ```bash
-python3 wfgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
+python3 wfgen/server.py --addr 127.0.0.1 --uhd-args type=b200
 ```
 
 ### Client Side (CLI)
@@ -144,7 +153,7 @@ python3 wfgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
 The client can be started as a program to use the designed command line interface.
 
 ```bash
-python3 wfgen_cli/client.py --help
+python3 wfgen/client.py --help
 usage: client.py [-h] [--conn addr port use_ssh] [--verbose] [--dev] [--log-server]
 
 optional arguments:
@@ -159,7 +168,7 @@ optional arguments:
 To connect to the server above
 
 ```bash
-python3 wfgen_cli/client.py --conn 127.0.0.1 50000 False --verbose
+python3 wfgen/client.py --conn 127.0.0.1 50000 False --verbose
 
 ** -------------------------------------------------------------------------- **
 ** Command List
@@ -176,7 +185,7 @@ python3 wfgen_cli/client.py --conn 127.0.0.1 50000 False --verbose
 ** - get_finished
 **     -- List of tuples -- each tuple is an finished process on the server
 ** - get_truth local_filename.json
-**     -- Saves all sent signals since start/last call into local_filename.json (overwrites)
+**     -- Saves all sent signals since start/last call into local_filename.json
 ** - start_radio <device number> <profile type> <profile name> [options]
 **     start_radio 0 profile qpsk frequency 2.45e6
 **     -- This starts device 0 (with need args) at the specified frequency
@@ -246,8 +255,7 @@ reply: Killing process 1903712
 
 On the server side that interaction should produce something like this:
 ```python
-python3 wfgen_cli/server.py --addr 127.0.0│** - get_active
-.1 --uhd-args type=b200
+python3 wfgen/server.py --addr 127.0.0.1 --uhd-args type=b200
 Starting server...started
 ['frequency', '2.45e9', 'gain', '70', 'bw', '0.7', 'rate', '1e6', 'json', '/data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json']
 frequency 2.45e9
