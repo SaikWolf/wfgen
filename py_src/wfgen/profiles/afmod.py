@@ -9,9 +9,9 @@ available_mods = ["am_constant","am_square","am_triangle","am_sawtooth","am_sinu
 
 class _ammod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         super(_ammod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'wavgen_am'
+        self.base_command = 'wfgen_am'
         self.mod = mod if mod is not None else 'am_wav_file'
         self.options = profiles.get_base_options('static','analog') + ['json']
         self.option_flags = profiles.get_base_flags('static','analog') + ['-j']
@@ -39,13 +39,13 @@ class _ammod(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
         if "hopper" in params and params['hopper']:
             hopping = True
-            self.base_command = 'wavgen_fhssgen'
+            self.base_command = 'wfgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -113,7 +113,7 @@ class _ammod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')
@@ -121,9 +121,9 @@ class _ammod(_profile):
 
 class _fmmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         super(_fmmod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'wavgen_fm'
+        self.base_command = 'wfgen_fm'
         self.mod = mod if mod is not None else 'fm_wav_file'
         self.options = profiles.get_base_options('static','analog') + ['json']
         self.option_flags = profiles.get_base_flags('static','analog') + ['-j']
@@ -149,13 +149,13 @@ class _fmmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
         if "hopper" in params and params['hopper']:
             hopping = True
-            self.base_command = 'wavgen_fhssgen'
+            self.base_command = 'wfgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -232,7 +232,7 @@ class _fmmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')

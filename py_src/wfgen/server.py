@@ -23,9 +23,9 @@ try:
     from .c_logger import logger_client,fake_log,logger as c_logger
 except ImportError:
     ### fall back for direct execution
-    from wavgen_cli.launcher import launch
-    from wavgen_cli.utils import get_interface,encoder,decoder,Ettus_USRP_container
-    from wavgen_cli import logger_client,fake_log,c_logger
+    from wfgen_cli.launcher import launch
+    from wfgen_cli.utils import get_interface,encoder,decoder,Ettus_USRP_container
+    from wfgen_cli import logger_client,fake_log,c_logger
 
 
 
@@ -151,7 +151,7 @@ class ServerState(object):
 command_list=["help","ping","get_radios","get_active","get_finished",
               "start_radio","run_random","kill","shutdown","get_truth",
               "run_script"]
-def run(addr:str=None,port:int=50000,uhd_args=[],debug=False,root_dir='/data/local/wavgen_reports',use_log=True):
+def run(addr:str=None,port:int=50000,uhd_args=[],debug=False,root_dir='/data/local/wfgen_reports',use_log=True):
     """
     Run the server application
 

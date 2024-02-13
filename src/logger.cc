@@ -18,7 +18,7 @@ constexpr const char* file_name(const char* path){
   return file;
 }
 
-const char serial_key[] = "wavgen:";
+const char serial_key[] = "wfgen:";
 logger::null_buff drop;
 std::ostream null_stream(&drop);
 logger::level_map_t logger::level_map = {

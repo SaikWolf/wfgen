@@ -16,14 +16,14 @@ available_subcarrier_mods = ['psk2', 'psk4', 'psk8', 'psk16', 'psk32', 'psk64', 
 
 class _ofdmmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         super(_ofdmmod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'wavgen_wbofdmgen'
+        self.base_command = 'wfgen_wbofdmgen'
         self.mod = mod if mod is not None else 'ofdm'
         self.car_mod = kwargs['car_mod'] if 'car_mod' in kwargs and kwargs['car_mod'] is not None else 'qpsk'
         self.options = profiles.get_base_options('ofdm') + ['json']
         self.option_flags = profiles.get_base_flags('ofdm') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'wavgen_linmod'
+        self.defaults = { ## This are set to the defaults in 'wfgen_linmod'
             'bands':[(100e6,6e9)],
             ####'freq_limits' controlled by 'bands' now
             'span_limits':[(5e6,100e6)],
@@ -61,7 +61,7 @@ class _ofdmmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = True
@@ -144,7 +144,7 @@ class _ofdmmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         return profiles.get_base_options("ofdm")
 
 

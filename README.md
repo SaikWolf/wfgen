@@ -1,4 +1,4 @@
-# WAV-GEN
+# Waveform Gen
 
 Waveform generator designed to create waveforms in file or over the air format.
 
@@ -45,7 +45,7 @@ Assuming tools and libraries are installed and available
 For development ease, the repo expects to be wrapped into a virtual environment
 
 ```bash
-virtualenv wav-gen
+virtualenv wfgen
 ```
 
 Then the following needs to be appended to the `activate` script for linking
@@ -66,17 +66,17 @@ if [ ! -z ${AUDIO_FOLDER+x} ]; then
         sudo mount -t tmpfs -o size=15g tmpgs /mnt/ramdisk
         cp -r $AUDIO_FOLDER /mnt/ramdisk/
     fi
-    if [ -z ${WAVGEN_AUDIO_FOLDER+x} ]; then
-        export WAVGEN_AUDIO_FOLDER="/mnt/ramdisk/$(basename $AUDIO_FOLDER)"
+    if [ -z ${WFGEN_AUDIO_FOLDER+x} ]; then
+        export WFGEN_AUDIO_FOLDER="/mnt/ramdisk/$(basename $AUDIO_FOLDER)"
     fi
 else
-    echo "AUDIO_FOLDER isn't set, so analog waveforms won't work properly unless WAVGEN_AUDIO_FOLDER is set manually"
+    echo "AUDIO_FOLDER isn't set, so analog waveforms won't work properly unless WFGEN_AUDIO_FOLDER is set manually"
 fi
 ```
 
 The current functionality of analog waveforms assumes there's an `AUDIO_FOLDER` that
 contains wav files that can be used as an analog source. If not set before activating
-the environment, manually set `WAVGEN_AUDIO_FOLDER` for automatic audio selection.
+the environment, manually set `WFGEN_AUDIO_FOLDER` for automatic audio selection.
 It is recommended that the audio be on a temp filesystem in RAM for best performance.
 
 Once the `VIRTUAL_ENV` is setup, the make files should be functional and will install
@@ -92,9 +92,9 @@ make -j4 install
 There are logging programs `logger_server` and `logger_file` that are meant for debugging
 and are not documented, use at your discretion.
 
-The main waveform apps then start with `wavgen_` and have built in help commands
+The main waveform apps then start with `wfgen_` and have built in help commands
 ```bash
-wavgen_linmod -h
+wfgen_linmod -h
 ```
 
 # The CLI
@@ -105,7 +105,7 @@ be installed, the code execution still takes place from the root folder of the r
 ### Install (as tested)
 
 ```bash
-(wav-gen) wav-gen$ pip install -e .
+(wfgen) wfgen$ pip install -e .
 ```
 
 The CLI operations in client/server configuration and can have multiple servers connected, but
@@ -116,7 +116,7 @@ multiple clients can result in unexpected behavior.
 ### Server Side
 
 ```bash
-python3 wavgen_cli/server.py --help
+python3 wfgen_cli/server.py --help
 usage: server.py [-h] [--addr ADDR] [--port PORT] [--octo-addr OCTO_ADDR] [--octo-port OCTO_PORT]
                  [--uhd-args UHD_ARGS] [--log-server]
 
@@ -127,7 +127,7 @@ optional arguments:
   --uhd-args UHD_ARGS   Limit to devices whose flag provided will find (def: all uhd devices)
   --log-server          Use if a log-server is active (meant for debugging)
 
-python3 wavgen_cli/server.py --addr 127.0.0.1
+python3 wfgen_cli/server.py --addr 127.0.0.1
 Starting server...started
 ```
 
@@ -136,7 +136,7 @@ all UHD USRP devices. To constrain to only specific radios `--uhd-args` can be u
 any UHD arguments that help find the devices. For example, to limit to only the B2XX series devices
 
 ```bash
-python3 wavgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
+python3 wfgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
 ```
 
 ### Client Side (CLI)
@@ -144,7 +144,7 @@ python3 wavgen_cli/server.py --addr 127.0.0.1 --uhd-args type=b200
 The client can be started as a program to use the designed command line interface.
 
 ```bash
-python3 wavgen_cli/client.py --help
+python3 wfgen_cli/client.py --help
 usage: client.py [-h] [--conn addr port use_ssh] [--verbose] [--dev] [--log-server]
 
 optional arguments:
@@ -159,7 +159,7 @@ optional arguments:
 To connect to the server above
 
 ```bash
-python3 wavgen_cli/client.py --conn 127.0.0.1 50000 False --verbose
+python3 wfgen_cli/client.py --conn 127.0.0.1 50000 False --verbose
 
 ** -------------------------------------------------------------------------- **
 ** Command List
@@ -232,7 +232,7 @@ src_cl: '0 static bpsk frequency 2.45e9 gain 70 bw 0.7 rate 1e6'
 src_sl: ['0', 'static', 'bpsk', 'frequency', '2.45e9', 'gain', '70', 'bw', '0.7', 'rate', '1e6']
 sending command: ['start_radio', 'static', '-a type=b200,serial=30875A1', 'bpsk', 'frequency', '2.45e9', 'gain', '70', 'bw', '0.7', 'rate', '1e6']
 start_radio 0 static bpsk frequency 2.45e9 gain 70 bw 0.7 rate 1e6
-reply: Starting process 1903712 /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
+reply: Starting process 1903712 /data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
 ```
 
 The process can then be ended with
@@ -246,19 +246,19 @@ reply: Killing process 1903712
 
 On the server side that interaction should produce something like this:
 ```python
-python3 wavgen_cli/server.py --addr 127.0.0│** - get_active
+python3 wfgen_cli/server.py --addr 127.0.0│** - get_active
 .1 --uhd-args type=b200
 Starting server...started
-['frequency', '2.45e9', 'gain', '70', 'bw', '0.7', 'rate', '1e6', 'json', '/data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json']
+['frequency', '2.45e9', 'gain', '70', 'bw', '0.7', 'rate', '1e6', 'json', '/data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json']
 frequency 2.45e9
 gain 70
 bw 0.7
 rate 1e6
-json /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
-{'frequency': '2.45e9', 'gain': '70', 'bw': '0.7', 'rate': '1e6', 'json': '/data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json'}
+json /data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
+{'frequency': '2.45e9', 'gain': '70', 'bw': '0.7', 'rate': '1e6', 'json': '/data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json'}
 Making a bpsk profile
 RUNNING WITH THIS:
-wavgen_linmod -a type=b200,serial=30875A1 -b 0.7 -f 2.45e9 -g 70 -r 1e6 -j /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json -M bpsk
+wfgen_linmod -a type=b200,serial=30875A1 -b 0.7 -f 2.45e9 -g 70 -r 1e6 -j /data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json -M bpsk
 Using:
   modulation:   bpsk
   freq:         2450000000.000
@@ -294,7 +294,7 @@ Connecting to radio at: cpu sec: 1706535016.234411716
 Starting to send at: cpu sec: 1706535026.952406406
 Stopping send at: cpu sec: 1706535032.096147776
 Radio should be stopped at: cpu sec: 1706535032.159663200
-.json log written to /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
+.json log written to /data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json
 ```
 
 The truth file containing information on everything that was transmitted can then be pulled to the client
@@ -310,7 +310,7 @@ truth file: demo_run.json
 
 -- Note: If the json is not proper, the report will not contain the improper json, but the information
 on the server for the specified signal
-(ex: /data/local/wavgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json)
+(ex: /data/local/wfgen_reports/20240129082959_truth/truth_dev_30875A1_instance_00000.json)
 will still contain useful information, but will require human intervention to correct.
 
 
@@ -344,7 +344,7 @@ truth file: demo_random.json
 
 For more complex randomized runs, a scenario can be created.
 This requires a bit more creation in order to successfully run, but an example scenario can be found
-in `wav-gen/scenarios/example_scenario_000.json` which runs a noise waveform for a set time and
+in `wfgen/scenarios/example_scenario_000.json` which runs a noise waveform for a set time and
 parameter constraints in the directories within directories.
 
 ```python

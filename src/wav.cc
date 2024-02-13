@@ -279,7 +279,7 @@ void load_files(char **filepaths, int file_count, wav_reader wav){
 int find_default_valid(char **&filepaths){
     if(filepaths != NULL) return -1;
     int valid_files = 0;
-    char* default_path = std::getenv("WAVGEN_AUDIO_FOLDER");
+    char* default_path = std::getenv("WFGEN_AUDIO_FOLDER");
     std::vector<std::string> good_files(0);
     if(default_path != NULL){
         glob_t globbuf;

@@ -18,13 +18,13 @@ def load_requirements(path_dir=ROOT, comment_char='#'):
     return reqs
 
 repo_info = {}
-ver_path = convert_path('wavgen_cli/_version.py')
+ver_path = convert_path('py_src/wfgen/_version.py')
 if os.path.exists(ver_path):
     with open(ver_path) as ver_file:
         exec(ver_file.read(),repo_info)
 
 setup(
-    name        = 'wavgen_cli',
+    name        = 'wfgen',
     version     = repo_info['__version__'] if '__version__' in repo_info else '0.0+beta',
     description = repo_info['__docs__'] if '__docs__' in repo_info else 'beta',
     author      = repo_info['__author__'] if '__author__' in repo_info else 'beta',

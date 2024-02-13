@@ -14,13 +14,13 @@ available_mods = ["fsk2", "fsk4", "fsk8", "fsk16", "fsk32", "fsk64",
 
 class _fskmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         super(_fskmod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'wavgen_fskmod'
+        self.base_command = 'wfgen_fskmod'
         self.mod = mod if mod is not None else 'fsk4'
         self.options = profiles.get_base_options('static','fsk') + ['json']
         self.option_flags = profiles.get_base_flags('static','fsk') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'wavgen_fskmod'
+        self.defaults = { ## This are set to the defaults in 'wfgen_fskmod'
             'bands':[(100e6,6e9)],
             ###'freq_limits':[(100e6,6e9)], controlled with 'bands' now
             'span_limits':[(5e6,100e6)],
@@ -46,14 +46,14 @@ class _fskmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
         if "hopper" in params and params['hopper']:
             ############# This is a frequency hopping version
             hopping = True
-            self.base_command = 'wavgen_fhssgen'
+            self.base_command = 'wfgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -148,7 +148,7 @@ class _fskmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static','fsk')
         return profiles.get_base_options('hopper','fsk')

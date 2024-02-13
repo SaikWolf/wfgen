@@ -201,7 +201,7 @@ class _profile(object):
         self.proc = None
         self.stats = None
         self._use_log = True if 'use_log' in kwargs and kwargs['use_log'] else False
-        from wavgen_cli import logger_client,fake_log
+        from wfgen_cli import logger_client,fake_log
         self.log_c = logger_client(name) if self._use_log else fake_log(name,cout=False)
         
         if "silent" not in kwargs or not kwargs["silent"]:
@@ -370,7 +370,7 @@ class replay_profile(_profile):
             self.mod_file = tones
             self.mod_p = getattr(self.mod_file,self.likely_mod)()
 
-        from wavgen_cli import c_logger
+        from wfgen_cli import c_logger
         if self.mod_p is not None:
             pass
             ### updates

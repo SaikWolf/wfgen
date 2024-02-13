@@ -15,13 +15,13 @@ available_mods = ['psk2', 'psk4', 'psk8', 'psk16', 'psk32', 'psk64', 'psk128', '
 
 class _linmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         super(_linmod,self).__init__(self.__class__.__name__,**kwargs)
-        self.base_command = 'wavgen_linmod'
+        self.base_command = 'wfgen_linmod'
         self.mod = mod if mod is not None else 'qpsk'
         self.options = profiles.get_base_options('static') + ['json']
         self.option_flags = profiles.get_base_flags('static') + ['-j']
-        self.defaults = { ## This are set to the defaults in 'wavgen_linmod'
+        self.defaults = { ## This are set to the defaults in 'wfgen_linmod'
             'bands':[(100e6,6e9)],
             ####'freq_limits' controlled by 'bands' now
             'span_limits':[(5e6,100e6)],
@@ -45,14 +45,14 @@ class _linmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
         if "hopper" in params and params['hopper']:
             ############# This is a frequency hopping version
             hopping = True
-            self.base_command = 'wavgen_fhssgen'
+            self.base_command = 'wfgen_fhssgen'
             self.defaults['rate'] = 1e6
             self.defaults['bw'] = 0.025
             self.defaults['dwell'] = 0.05
@@ -134,7 +134,7 @@ class _linmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wavgen_cli import profiles
+        from wfgen_cli import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')
