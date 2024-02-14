@@ -10,7 +10,7 @@ import multiprocessing as mp
 from multiprocessing import shared_memory,managers
 mp.shared_memory = shared_memory
 mp.managers = managers
-from wfgen_cli.profiles.analogs import AudioCombiner
+from wfgen.profiles.analogs import AudioCombiner
 
 
 def parse_args():

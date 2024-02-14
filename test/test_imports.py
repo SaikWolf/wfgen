@@ -26,7 +26,7 @@ def import_subprocess():
 
 def import_repo():
     try:
-        import wfgen_cli as wg
+        import wfgen as wg
         return 0
     except ImportError:
         pass

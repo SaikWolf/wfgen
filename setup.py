@@ -30,7 +30,7 @@ setup(
     author      = repo_info['__author__'] if '__author__' in repo_info else 'beta',
     license     = repo_info['__license__'] if '__license__' in repo_info else 'beta',
     packages    = find_packages(exclude=['scripts','docs']),
-    scripts     = [os.path.join(ROOT,'scripts',x) for x in ['consolidate_reports.py','proc_query.py','wav_server.py']],
+    scripts     = [os.path.join(ROOT,'scripts',x) for x in ['consolidate_reports.py','proc_query.py','wav_server.py','wfgen_env.sh']],
 
     long_description                = open(os.path.join(ROOT,'README.md'), encoding='utf-8').read(),
     long_description_content_type   = 'text/markdown',

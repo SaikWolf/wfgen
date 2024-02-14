@@ -2,7 +2,7 @@
 import time
 import zmq
 import multiprocessing as mp
-import wfgen_cli as wg
+import wfgen as wg
 
 encoder = wg.encoder
 decoder = wg.decoder
