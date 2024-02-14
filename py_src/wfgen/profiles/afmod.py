@@ -9,7 +9,7 @@ available_mods = ["am_constant","am_square","am_triangle","am_sawtooth","am_sinu
 
 class _ammod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         super(_ammod,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'wfgen_am'
         self.mod = mod if mod is not None else 'am_wav_file'
@@ -39,7 +39,7 @@ class _ammod(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
@@ -113,7 +113,7 @@ class _ammod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')
@@ -121,7 +121,7 @@ class _ammod(_profile):
 
 class _fmmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         super(_fmmod,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'wfgen_fm'
         self.mod = mod if mod is not None else 'fm_wav_file'
@@ -149,7 +149,7 @@ class _fmmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs
     def start(self,radio_args,params=dict()):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = False
@@ -232,7 +232,7 @@ class _fmmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         if mode == 'static':
             return profiles.get_base_options('static')
         return profiles.get_base_options('hopper')

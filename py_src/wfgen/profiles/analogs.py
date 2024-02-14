@@ -316,7 +316,7 @@ class AudioCombiner(object):
         if not use_base:
             self._find_sources()
         else:
-            import wfgen_cli as wg
+            import wfgen as wg
             Base = wg.BaseAudio
             if Base is None:
                 self._find_sources()

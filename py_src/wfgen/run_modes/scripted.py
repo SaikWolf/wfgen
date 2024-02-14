@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 try:
     from ..profiles import get_all_profile_names,extract_profile_by_name,get_replay_profile_names
 except ImportError:
-    from wfgen_cli.profiles import get_all_profile_names,extract_profile_by_name,get_replay_profile_names
+    from wfgen.profiles import get_all_profile_names,extract_profile_by_name,get_replay_profile_names
 
 RNG_TYPE = np.random.Generator
 
@@ -608,8 +608,8 @@ def parse_script_request(request:Dict,server_state:"ServerState",use_log=False):
     is able to transmit.
     '''
     import pprint
-    from wfgen_cli.profiles import get_all_profile_names
-    from wfgen_cli import logger_client, fake_log, c_logger
+    from wfgen.profiles import get_all_profile_names
+    from wfgen import logger_client, fake_log, c_logger
     if use_log:
         log_c = logger_client("{0!s}".format("parse_script_request"))
     else:
@@ -635,7 +635,7 @@ def parse_script_request(request:Dict,server_state:"ServerState",use_log=False):
     else:
         toggles = dict()
     # if flags in [1,2]:
-    #     from wfgen_cli.profiles import get_traceback_profiles
+    #     from wfgen.profiles import get_traceback_profiles
     individual_radio_requests = [None]*len(request)
     #request = [{signal:signals[idx],timing:[signals[idx][time_start],signals[idx][time_stop]]},...]
     if DEBUG_TIMEOUT > 0 and flags in [1,2,3]:
@@ -715,7 +715,7 @@ def scripted_run(runtime, available_radio_profiles, flags, initial_idx, final_id
     worker_lookups['flags'] = flags
     worker_lookups['toggles'] = toggles
     worker_lookups['use_log'] = use_log
-    from wfgen_cli import logger_client, fake_log, c_logger
+    from wfgen import logger_client, fake_log, c_logger
     if use_log:
         log_c = logger_client("{0!s}".format("scripted_run"))
     else:
@@ -856,7 +856,7 @@ def scripted_worker(worker_id, uhd_args, profiles, seed, worker_lookup):
         toggles = dict()
     server_size = worker_lookup['server_size']
 
-    from wfgen_cli import logger_client, fake_log, c_logger
+    from wfgen import logger_client, fake_log, c_logger
     use_log = False if 'use_log' not in worker_lookup else worker_lookup['use_log']
     if use_log:
         log_c = logger_client("{0!s}".format("scripted_worker[{}]".format(worker_id)))
@@ -1195,7 +1195,7 @@ def resolve_random_space(var,rng):
     else:
         return var
 def translate_config(config_a:Dict,rng:RNG_TYPE,log_c=None) -> Dict:
-    from wfgen_cli import c_logger
+    from wfgen import c_logger
     # import pprint
     # pprint.pprint(config_a)
     config_w = deepcopy(config_a) ## working config
@@ -1709,11 +1709,11 @@ class radio_plan_tracker(object):
 def debug_server_scripting(uhd_args=[],script='truth_scripts/output-1a-truth.json'):
     if not isinstance(uhd_args,list):
         raise ValueError("'uhd_args' is expected in a list")
-    from wfgen_cli.server import ServerState
-    from wfgen_cli.profiles import get_traceback_profiles
-    from wfgen_cli.utils import get_interface
+    from wfgen.server import ServerState
+    from wfgen.profiles import get_traceback_profiles
+    from wfgen.utils import get_interface
     server = ServerState('/tmp',get_interface(),50000,'172.21.192.86',56000,uhd_args,None,False,False)
-    from wfgen_cli.launcher import get_radios
+    from wfgen.launcher import get_radios
     server.set_radios(get_radios(server.uhd_args))
     possible_radios = ['{0:s}'.format(x['args']) for x in server.radios.radios]
     possible_servers = [x for x in server.radios.radio_server_map]

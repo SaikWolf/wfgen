@@ -16,7 +16,7 @@ available_subcarrier_mods = ['psk2', 'psk4', 'psk8', 'psk16', 'psk32', 'psk64', 
 
 class _ofdmmod(_profile):
     def __init__(self,mod=None,**kwargs):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         super(_ofdmmod,self).__init__(self.__class__.__name__,**kwargs)
         self.base_command = 'wfgen_wbofdmgen'
         self.mod = mod if mod is not None else 'ofdm'
@@ -61,7 +61,7 @@ class _ofdmmod(_profile):
     def config(self,**kwargs):
         self._config = kwargs ### being lazy here
     def start(self,radio_args,params=dict()):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         opts = self.options
         flgs = self.option_flags
         hopping = True
@@ -144,7 +144,7 @@ class _ofdmmod(_profile):
         return cmd
     @staticmethod
     def get_options(mode='static'):
-        from wfgen_cli import profiles
+        from wfgen import profiles
         return profiles.get_base_options("ofdm")
 
 

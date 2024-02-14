@@ -23,9 +23,9 @@ try:
     from .c_logger import logger_client,fake_log,logger as c_logger
 except ImportError:
     ### fall back for direct execution
-    from wfgen_cli.launcher import launch
-    from wfgen_cli.utils import get_interface,encoder,decoder,Ettus_USRP_container
-    from wfgen_cli import logger_client,fake_log,c_logger
+    from wfgen.launcher import launch
+    from wfgen.utils import get_interface,encoder,decoder,Ettus_USRP_container
+    from wfgen import logger_client,fake_log,c_logger
 
 
 

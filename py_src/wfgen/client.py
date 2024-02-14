@@ -21,9 +21,9 @@ try:
     from . import profiles
 except:
     ## fall back for direct exection
-    from wfgen_cli.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
-    from wfgen_cli import logger_client,fake_log,c_logger
-    from wfgen_cli import profiles
+    from wfgen.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
+    from wfgen import logger_client,fake_log,c_logger
+    from wfgen import profiles
 
 
 def line2start_radio(line):
@@ -377,7 +377,7 @@ class Client(object):
             return self._not_connected
         if self.radios is None:
             return "Get radios first!"
-        from wfgen_cli.run_modes import scripted
+        from wfgen.run_modes import scripted
         if file_location is None:
             raise ValueError("No script path provided")
         try:

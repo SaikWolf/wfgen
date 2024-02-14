@@ -8,9 +8,9 @@ import yaml
 import time
 import pprint
 from typing import List
-from wfgen_cli import profiles
-from wfgen_cli.utils import paramify
-from wfgen_cli.run_modes import parse_random_run_reqest,parse_script_request
+from wfgen import profiles
+from wfgen.utils import paramify
+from wfgen.run_modes import parse_random_run_reqest,parse_script_request
 
 
 log_c = None
@@ -24,7 +24,7 @@ def launch(cmd: List[str],server_state:"ServerState",use_log=False):
     """
     global log_c, r_logger
     if log_c is None:
-        from wfgen_cli import logger_client,fake_log,c_logger
+        from wfgen import logger_client,fake_log,c_logger
         log_c = logger_client() if use_log else fake_log(cout=False)
         r_logger = c_logger
     if cmd == 'get_radios':

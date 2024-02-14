@@ -18,7 +18,7 @@ import time
 try:
     from ..profiles import get_all_profile_names,extract_profile_by_name
 except ImportError:
-    from wfgen_cli.profiles import get_all_profile_names,extract_profile_by_name
+    from wfgen.profiles import get_all_profile_names,extract_profile_by_name
 
 
 _source_limits = ['gain_limits','digital_gain_limits','digital_cycle_limits']
