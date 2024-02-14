@@ -33,7 +33,7 @@ clean-liquid			:
 	cd ./liquid-dsp && make distclean
 
 builddir				:
-	if [ ! -d "./build" ]; then \
+	if [ ! -d "./build/src" ]; then \
 		mkdir -p ./build/src; \
 		mkdir -p ./build/apps; \
 		mkdir -p ./build/include; \
