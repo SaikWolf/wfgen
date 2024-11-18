@@ -3,7 +3,7 @@ import cmd
 import zmq
 import zmq.ssh
 import argparse
-import yaml
+import yaml,json
 import subprocess
 import shlex
 import sys
@@ -11,17 +11,21 @@ from typing import List
 import tempfile
 import os
 import numpy as np
+import time
 import pprint
+from queue import deque
 
-WG_CLIENT_API_VERSION = 0x01000000
+from pynet import ClientNetworking
+
+WG_CLIENT_API_VERSION = 0x02000000
 
 try:
-    from .utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
+    from .utils import get_interface,paramify,MultiSocket,Ettus_USRP_container,encoder,decoder
     from .c_logger import logger_client,fake_log,logger as c_logger
     from . import profiles
 except:
     ## fall back for direct exection
-    from wfgen.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container
+    from wfgen.utils import get_interface,paramify,MultiSocket,Ettus_USRP_container,encoder,decoder
     from wfgen import logger_client,fake_log,c_logger
     from wfgen import profiles
 
@@ -175,9 +179,78 @@ class radio_plan_tracker(object):
                 break
         return available
 
+class ClientRequest(object):
+    REQUEST_ID=0
+    @staticmethod
+    def _getid():
+        v = ClientRequest.REQUEST_ID
+        ClientRequest.REQUEST_ID += 1
+        return v
+    def __init__(self, server_list, the_req):
+        self.cid = ClientRequest._getid()
+        self.servers = server_list if isinstance(server_list,list) else [server_list]
+        self.action = the_req if isinstance(the_req,list) else [the_req]
+    def get_message(self):
+        return self.action if len(self.action) > 1 else self.action[0]
+    def get_dest(self):
+        return self.servers
+    def get_payload(self):
+        return self.servers + [b""] + encoder(self.action)
+    def __str__(self):
+        return f'<{self.servers} : {self.action}>'
+    def __repr__(self):
+        return str(self)
+
+class ClientNet(ClientNetworking):
+    def __init__(self,config_path):
+        endpoints = []
+        self.sshing = []
+        with open(config_path,'r') as fp:
+            config = json.load(fp)
+        for conn in config['server_connections']:
+            endpoints.append(f"{conn['server_addr']}:{conn['server_port']}")
+            self.sshing.append(conn['server_ssh'] if 'server_ssh' in conn else 0)
+        super().__init__(endpoints)
+    def disconnect(self):
+        super().close()
+    def send_request(self, request:ClientRequest):
+        if self.listener is not None:
+            if self.listener.is_stopped():
+                raise RuntimeError("Connection has been stopped...",self.listener.reason)
+            msgs = request.get_payload()
+            try:
+                self.send(msgs)
+            except Exception as e:
+                import traceback
+                self.stop("\n".join(['-MAIN THREAD ERROR-',traceback.format_exc()]))
+                raise RuntimeError("Could not handle messages")
+            return len(self.endpoints)
+        return None
+    def handle_tasks(self,payload):
+        if not isinstance(payload,tuple):
+            print(f"Unknown type observed: {type(payload)} ... dropping")
+            return
+        sid,msg = payload[0],payload[1:]
+        request = ClientRequest(sid, msg[2:])
+        self.request_queue.append(request)
 
 class Client(object):
     _not_connected = "Not connected"
+    SHUTDOWN=-1
+    HELP=0
+    RADIOS=1
+    ACTIVE=2
+    FINISHED=3
+    TRUTH=4
+    START=5
+    STOP=6
+    SCRIPT=7
+    RANDOM=8
+    __names = [
+        'help','get_radios','get_active','get_finished',
+        'get_truth','start_radio','kill',
+        'run_script','run_random','shutdown'
+    ]
     """
     Attempting to make the client a class in case persistance is needed
 
@@ -185,85 +258,180 @@ class Client(object):
     :param port: the integer value of the port to connect to (defaults to 50000)
     :return: A client through which programs can be interfaced
     """
-    def __init__(self,addrs:List[str]=[],ports:List[int]=[],ssh_tunnel:List[bool]=[],use_log=False):
-        if(len(addrs) == 0):
-            # Assuming a local connection only
-            self.addrs = [get_interface()]
-        else:
-            self.addrs = [x for x in addrs]
-        self.ports = ports
-        self.conn = MultiSocket()
-        self.sshs = ssh_tunnel
+    def __init__(self,network_interface:ClientNet,use_log=False):
+        self.network = network_interface
         self.tunnel = None
         self.radios = None
-        self.server_there = False
-        self.conn_addrs = [None]*len(self.addrs)
-        for idx,(a,s) in enumerate(zip(self.addrs,self.sshs)):
-            if(s == True):
-                self.conn_addrs[idx] = '127.0.0.1'
-            else:
-                self.conn_addrs[idx] = a
         self.log_c = logger_client("Client") if use_log else fake_log("Client",cout=False)
+        self._req_num = 0
+        self.running = False
+        self.alive_servers = []
+        self.action_queues = dict([(n,deque()) for n in Client.__names])
+        self.network.set_callback(self.do_something)
+
+    def refresh_connected(self):
+        self.network.disconnect()
+        self.network.connect()
+        self.running = True
+
+    @property
+    def server_there(self):
+        return sum(self.network.state_map.values()) == len(self.network.endpoints)
 
     def is_connected(self):
-        if len(self.conn) == len(self.addrs):
-            if self.server_there:
-                return True
-            else:
-                self.conn.setsockopt(zmq.REQ_RELAXED,1)
-                self.conn.setsockopt(zmq.REQ_CORRELATE,1)
-                self.conn.send_multipart(['ping'])## encoder moved internal
-                if self.conn.poll(timeout=5000., event=zmq.POLLIN) != 0:#ms
-                    if all([x[0] == "pong" for x in self.conn.recv_multipart()]):
-                        self.conn.setsockopt(zmq.REQ_RELAXED,0)
-                        self.conn.setsockopt(zmq.REQ_CORRELATE,0)
-                        self.server_there = True
-                        return True
-                self.server_there = False
-        return False
+        if not self.network.listener:
+            import signal
+            x = signal.signal(signal.SIGINT,lambda *x,**y: ())
+            self.network.connect()
+            self.running = True
+            signal.signal(signal.SIGINT,x)
+        self.network.ping()
+        time.sleep(0.2)
+        return self.server_there
 
     def disconnect(self):
-        if not self.is_connected():
+        if not self.network.listener:
             return
-        self.conn.close()
-        self.conn = MultiSocket()
+        self.running = False
+        self.network.disconnect()
 
     def connect(self):
-        if self.is_connected():
-            self.conn.close()
-        
-        self.tunnel = [None]*len(self.addrs)
-        for idx,(a,p,s) in enumerate(zip(self.addrs,self.ports,self.sshs)):
-            if(s == True):
-                self.tunnel[idx] = zmq.ssh.openssh_tunnel(p,p,a,a,timeout=10)
-        
-        self.conn.connect(self.conn_addrs,self.ports)
-        # if self.ssh:
-        #     self.tunnel = zmq.ssh.openssh_tunnel(self.port,self.port,
-        #         self.addr,self.addr,timeout=10) # tunnel closes after 10s inactivity
-        #     self.conn.connect("tcp://127.0.0.1:{}".format(self.port))
-        # else:
-        #     self.conn.connect("tcp://{}:{}".format(self.addr,self.port))
+        if not self.is_connected():
+            self.network.connect()
+            self.running = True
+
+    def make_request(self,request_type,extra:List[str]=None):
+        if not self.is_connected():
+            print("Not connected, can't make requets")
+            return self._not_connected
+        if self.radios is None and request_type > 1:
+            print("Cannot make this request until radios are found (get_radios)")
+            return None
+        if   request_type == Client.SHUTDOWN:
+            command = ["shutdown","now"]
+        elif request_type == Client.HELP:
+            command = ["help","me"]
+        elif request_type == Client.RADIOS:
+            command = ["get_radios","."]
+        elif request_type == Client.ACTIVE:
+            command = ["get_active","."]
+        elif request_type == Client.FINISHED:
+            command = ["get_finished","."]
+        elif request_type == Client.TRUTH:
+            command = ["get_truth"]
+        elif request_type == Client.START:
+            command = ["start_radio"] + extra
+        elif request_type == Client.STOP:
+            command = ["kill"] + extra
+        elif request_type == Client.SCRIPT:
+            command = ["run_script"] + extra
+        elif request_type == Client.RANDOM:
+            command = ["run_random"] + extra
+        n = self.network.send_request(ClientRequest(self.network.endpoints,command))
+        if isinstance(n,int):
+            time.sleep(0.1*n)
+            self._req_num += 1
+        return n
+
+    def do_something(self, payload):
+        src,msg = payload
+        incoming = [(src,decoder([x for x in msg if x != b'']))]
+        if incoming:
+            for msg in incoming:
+                if not len(msg) > 1:
+                    continue
+                if not msg[1]:
+                    continue
+                msg001 = msg[1]
+                msg002 = '' if not isinstance(msg001,list) else (None if len(msg001) <= 1 else msg001[1])
+                if msg001 == "pong":
+                    if msg[0] not in self.alive_servers:
+                        print("\x1b[Fsaw pong from: ",msg[0],'\n\x1b[7G',sep='',end='',flush=True)
+                        self.alive_servers.append(msg[0])
+                elif msg001 in ['Found:\n']:
+                    self.action_queues['get_radios'].append(msg)
+                elif msg001 in ['Shutting','bye']:
+                    if msg[0] in self.alive_servers:
+                        del self.alive_servers[self.alive_servers.index(msg[0])]
+                    self.action_queues['shutdown'].append((msg[0],msg[1][2:]))
+                elif msg001 in ['Unable','Invalid','Radio']:
+                    if msg[1] == ['Unable','to','launch','last','command']:
+                        print(f"\x1b[38;5;202m{msg[0]} is {repr(' '.join(msg[1]))}\x1b[0m")
+                    elif 'start' in msg[1] and 'process' in msg[1]:
+                        ############################### handle start_radio response
+                        self.action_queues['start_radio'].append(" ".join(msg[1]))
+                    elif msg[1] == ["Invalid","command","or","unknown","command"]:
+                        ############################### handle start_radio response
+                        self.action_queues['start_radio'].append(" ".join(msg[1]))
+                    elif msg[1] == ["Radio", "is", "still", "in", "use"]:
+                        ############################### handle start_radio response
+                        self.action_queues['start_radio'].append(" ".join(msg[1]))
+                elif ('No' == msg001 or 'Killing' in msg001) and msg002 == 'process':
+                    self.action_queues['kill'].append(" ".join(msg[1]))
+                elif 'No' == msg001 and msg002 in ['Active','Finished']:
+                    print(msg[1])
+                    print(" ".join(msg[1]))
+                    if msg002 == 'Active':
+                        self.action_queues['get_active'].append(" ".join(msg[1]))
+                    else:
+                        self.action_queues['get_finished'].append(" ".join(msg[1]))
+                elif msg001 == 'Active':
+                    self.action_queues['get_active'].append(" ".join(msg[1]))
+                elif msg001 == 'Finished':
+                    self.action_queues['get_finished'].append(" ".join(msg[1]))
+                elif 'not my radio' in msg001:
+                    ############################### handle start_radio response
+                    self.action_queues['start_radio'].append(" ".join(msg[1]))
+                elif 'Starting process' in msg001:
+                    ############################### handle start_radio response
+                    self.action_queues['start_radio'].append(" ".join(msg[1]))
+                elif msg001 == 'report':
+                    self.action_queues['get_truth'].append(msg[1])
+                elif 'Starting scripted' in msg001:
+                    ############################### handle run_script response
+                    self.action_queues['run_script'].append(" ".join(msg[1]))
+                elif 'Starting random' in msg001:
+                    ############################### handle run_script response
+                    self.action_queues['run_random'].append(" ".join(msg[1]))
+                else:
+                    print(f"{repr('|'.join(msg[1]))} is unhandled at the moment")
+
+    def _get_reply_blocking(self,name,n,timeout):
+        count = 0
+        replies = [None]*n
+        start = time.time()
+        timed_out = False
+        while self.running and count < n and not timed_out:
+            reply = None
+            if self.action_queues[name]:
+                reply = self.action_queues[name].popleft()
+            if reply:
+                if isinstance(reply,tuple):
+                    replies[count] = "".join(reply[1][1:])
+                else:
+                    if not isinstance(reply,list):
+                        reply = [reply]
+                    replies[count] = reply
+                count += 1
+            if (now:=time.time())-start > timeout:
+                timed_out = True if count < n else False
+        if timed_out:
+            for idx in range(count,n):
+                replies[idx] = 'timeout'
+        return replies
 
     def get_help(self):
-        if not self.is_connected():
-            return self._not_connected
-        # self.conn.send_multipart(encoder(["help","me"]))
-        # reply = decoder(self.conn.recv_multipart())
-        expected = self.conn.send_multipart(["help","me"])
-        reply = self.conn.recv_multipart(expected)
-        return "\n\t".join(reply[0])
+        expected = self.make_request(Client.HELP)
+        return expected
 
-    def get_radios(self):
-        if not self.is_connected():
-            return self._not_connected
-        # self.conn.send_multipart(encoder(["get_radios",""]))
-        # reply = decoder(self.conn.recv_multipart())
-        expected = self.conn.send_multipart(["get_radios",""])
-        reply = self.conn.recv_multipart(expected)
-        # print("raw get_radios:")
-        # print(repr(reply))
-        return ["".join(x) for x in reply]
+    def get_radios(self,timeout=10.0):
+        expected = self.make_request(Client.RADIOS)
+        if not isinstance(expected,int):
+            return expected
+        reply = self._get_reply_blocking(Client.__names[Client.RADIOS],expected,timeout)
+        if all([x is None for x in reply]):
+            reply = None
+        return ["".join(x) for x in reply] if isinstance(reply,list) else reply
 
     def get_active(self):
         if not self.is_connected():
@@ -611,9 +779,9 @@ class cli(cmd.Cmd,object):
         + _TONE_PROFILES
         + _OFDM_PROFILES
         + _REPLAY_PROFILES)
-    def __init__(self,addrs, ports, use_sshs, verbose=True, dev=True, use_log=False):
+    def __init__(self,network_interface, verbose=True, dev=True, use_log=False):
         super(cli,self).__init__()
-        self.client = Client(addrs, ports, use_sshs,use_log=use_log)
+        self.client = Client(network_interface,use_log=use_log)
         self.radios = None
         self.verbose = verbose
         self.use_log = use_log #### not using this here at the moment
@@ -1252,8 +1420,8 @@ class cli(cmd.Cmd,object):
 
         return None
 
-def run(addr=[],port=50000,use_ssh=True,verbose=True,dev=False,use_log=False):
-    c = cli(addr,port,use_ssh,verbose,dev,use_log=use_log)
+def run(network_interface:ClientNet,verbose=True,dev=False,use_log=False):
+    c = cli(network_interface,verbose,dev,use_log=use_log)
     try:
         c.cmdloop()
     except KeyboardInterrupt:
@@ -1261,24 +1429,42 @@ def run(addr=[],port=50000,use_ssh=True,verbose=True,dev=False,use_log=False):
 
 def parse_args():
     p = argparse.ArgumentParser()
-    # p.add_argument("--addr",default=[],type=str,action='append',help="Interface address to connect to. Defaults to internet connection for local testing.")
-    # p.add_argument("--port",default=50000,type=int,help="Port to connect to (def: %(default)s)")
-    # p.add_argument("--disable-ssh",action="store_true",help="Don't use ssh tunnel to talk to server.")
-    p.add_argument("--conn",default=[],action='append',nargs=3,metavar=('addr','port','use_ssh'),
-        help=("Unique interface address to connect to. Default: host<internet connection IP> 50000 False"))
+    p.add_argument("--net-config",default=None,dest='net_config',type=str,
+        help='Path to json description of network connections')
+    p.add_argument("--make-default-net",action="store_true",help="Create the default network config file locally")
     p.add_argument("--verbose",action="store_true",help="Should the cli spit out everything?")
     p.add_argument("--dev",action="store_true",help="Should the cli spit out dev messages?")
     p.add_argument("--log-server",action='store_true',help="Use if a log-server is active (meant for debugging)")
     args = p.parse_args()
-    args.addrs,args.ports,args.sshs = zip(*args.conn)
-    args.addrs = list(args.addrs)
-    args.ports = list(args.ports)
-    args.sshs = list(args.sshs)
+    if args.make_default_net:
+        default_net = {
+            "server_connections":[
+                {
+                    "server_addr": "127.83.97.105",
+                    "server_port": 51515,
+                    "server_ssh":  0
+                }
+            ]
+        }
+        with open("default_client_network.json","w") as fp:
+            json.dump(default_net,fp,indent=2)
+    if args.net_config is None:
+        if args.make_default_net:
+            sys.exit()
+        raise RuntimeError("No network configuration file was provided")
     return args
 
 def main():
     args = parse_args()
-    run(args.addrs,args.ports,args.sshs,args.verbose,args.dev,use_log=args.log_server)
+    network = ClientNet(args.net_config)
+    try:
+        run(network,args.verbose,args.dev,use_log=args.log_server)
+    except:
+        import traceback
+        traceback.print_exc()
+    finally:
+        print("Cleanning up the network connections")
+        network.disconnect()
 
 if __name__ == "__main__":
     main()
