@@ -8,7 +8,8 @@
 #include <math.h>
 
 #include <complex>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 
 // report error specifically for invalid object configuration 
 // report error

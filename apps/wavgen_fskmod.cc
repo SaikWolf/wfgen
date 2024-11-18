@@ -8,8 +8,8 @@
 #include <iostream>
 #include <complex>
 #include <csignal>
+#include <liquid/liquid.h>
 
-#include "liquid.h"
 #include "fskmodems.hh"
 #include "labels.hh"
 

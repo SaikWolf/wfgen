@@ -11,7 +11,8 @@
 #include <atomic>
 #include <vector>
 #include <functional>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 #include "wav.hh"
 
 

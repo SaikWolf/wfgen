@@ -8,7 +8,8 @@
 #include <string.h>
 #include <complex>
 #include <fftw3.h>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 
 #include <omp.h>
 #define OMP_THREADS (16)

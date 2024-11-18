@@ -9,7 +9,8 @@
 #include <string>
 #include <sys/mman.h>
 #include <vector>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 
 typedef enum{
     NONE=-1,

@@ -7,10 +7,9 @@
 #include <complex>
 #include <csignal>
 #include <uhd/usrp/multi_usrp.hpp>
-
+#include <liquid/liquid.h>
 #include <random>
 
-#include "liquid.h"
 #include "labels.hh"
 #include "wbofdmgen.hh"
 

@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-
 #include <complex>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 #include "analog.hh"
 
 // report error specifically for invalid object configuration 

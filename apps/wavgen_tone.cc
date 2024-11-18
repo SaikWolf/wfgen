@@ -7,9 +7,10 @@
 #include <complex>
 #include <csignal>
 #include <uhd/usrp/multi_usrp.hpp>
+#include <liquid/liquid.h>
 
 #include "labels.hh"
-#include "liquid.h"
+
 
 static bool continue_running(true);
 void signal_interrupt_handler(int) {

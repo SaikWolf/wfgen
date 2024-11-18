@@ -9,3 +9,5 @@ matplotlib
 pydub
 tqdm
 psutil
+liquid-dsp
+py-network-pynet

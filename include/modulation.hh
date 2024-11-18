@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "liquid.h"
+#include <liquid/liquid.h>
+
 #include "fskmodems.hh"
 #include "afmodem.hh"
 #include "noisemodem.hh"
